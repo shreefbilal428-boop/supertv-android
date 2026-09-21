@@ -19,8 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Channel
-import com.example.ui.components.StartIoBannerAdContainer
-import com.example.ui.components.StartIoInterstitialAdDialog
 import com.example.ui.screens.FullscreenPlayerScreen
 import com.example.ui.screens.LiveTvScreen
 import com.example.ui.theme.DarkSurface
@@ -63,26 +61,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class NavigationTab(val title: String) {
-    LIVE_TV("Live TV")
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuperTvApp() {
     var selectedChannel by remember { mutableStateOf<Channel?>(null) }
-    var showInterstitialAd by remember { mutableStateOf(false) }
-    var channelToPlay by remember { mutableStateOf<Channel?>(null) }
-
-    if (showInterstitialAd && channelToPlay != null) {
-        StartIoInterstitialAdDialog(
-            channelName = channelToPlay!!.name,
-            onAdDismissed = {
-                showInterstitialAd = false
-                selectedChannel = channelToPlay
-            }
-        )
-    }
 
     if (selectedChannel != null) {
         FullscreenPlayerScreen(
@@ -137,11 +119,6 @@ fun SuperTvApp() {
                         containerColor = DarkSurface
                     )
                 )
-            },
-            bottomBar = {
-                Column {
-                    StartIoBannerAdContainer()
-                }
             }
         ) { innerPadding ->
             Box(
@@ -151,14 +128,10 @@ fun SuperTvApp() {
             ) {
                 LiveTvScreen(
                     onChannelSelected = { channel ->
-                        channelToPlay = channel
-                        showInterstitialAd = true
+                        selectedChannel = channel
                     }
                 )
             }
         }
     }
 }
-
-
-
