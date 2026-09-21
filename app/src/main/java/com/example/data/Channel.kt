@@ -323,7 +323,7 @@ object ChannelRepository {
                                 currentName = ""
                                 currentLogo = ""
 
-                                if (cartoonChannels.size >= 80) break
+                                if (cartoonChannels.size >= 250) break
                             }
                         }
                     }
@@ -336,7 +336,7 @@ object ChannelRepository {
         val fallbacks = richFallbacks["Cartoons"] ?: emptyList()
         val combined = (cartoonChannels + fallbacks)
             .distinctBy { it.name.trim().lowercase() }
-            .take(60)
+            .take(200)
 
         return combined
     }
