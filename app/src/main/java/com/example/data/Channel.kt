@@ -62,7 +62,16 @@ object ChannelRepository {
             Channel("us_fb_1", "Bloomberg TV", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
         ),
         "Cartoons" to listOf(
-            Channel("cart_fb_1", "Kids Cartoon 24/7", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE")
+            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_2", "Animation World TV", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_3", "Anime Kids Network", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_4", "Classic Toons Channel", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_5", "Disney Junior Hindi", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_6", "Cartoon Network HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_7", "Pogo TV Kids", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_8", "Nickelodeon India", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_9", "Hungama TV Kids", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_10", "Sonic Nickelodeon", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE")
         )
     )
 
