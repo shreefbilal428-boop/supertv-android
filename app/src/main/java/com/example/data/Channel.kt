@@ -35,8 +35,7 @@ object ChannelRepository {
         "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
         "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
         "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "Movies Base" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u",
-        "Series Base" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/series.m3u"
+        "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u"
     )
 
     private val richFallbacks = mapOf(
@@ -59,64 +58,29 @@ object ChannelRepository {
         ),
         "Bollywood Movies" to listOf(
             Channel("bm_fb_1", "Bollywood Action Cinema", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Bollywood Movies", "India", "MOVIE"),
-            Channel("bm_fb_2", "Goldmines Movies HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood Movies", "India", "MOVIE")
-        ),
-        "Hollywood Movies" to listOf(
-            Channel("hm_fb_1", "Hollywood Blockbusters 24/7", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Movies", "USA", "MOVIE"),
-            Channel("hm_fb_2", "HBO Hollywood HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Hollywood Movies", "USA", "MOVIE")
-        ),
-        "Tollywood Movies" to listOf(
-            Channel("tm_fb_1", "Tollywood South Action Gold", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Tollywood Movies", "India", "MOVIE"),
-            Channel("tm_fb_2", "South Indian Cinema HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Tollywood Movies", "India", "MOVIE")
-        ),
-        "Bollywood Web Series" to listOf(
-            Channel("bws_fb_1", "Hindi Web Series 24/7", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Bollywood Web Series", "India", "SERIES"),
-            Channel("bws_fb_2", "Indian Crime Thrillers Series", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Bollywood Web Series", "India", "SERIES")
-        ),
-        "Hollywood Web Series" to listOf(
-            Channel("hws_fb_1", "Hollywood Sci-Fi Series", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Hollywood Web Series", "USA", "SERIES"),
-            Channel("hws_fb_2", "US Drama Series HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Web Series", "USA", "SERIES")
+            Channel("bm_fb_2", "Goldmines Movies HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood Movies", "India", "MOVIE"),
+            Channel("bm_fb_3", "Hindi Cinema Hits 24/7", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Bollywood Movies", "India", "MOVIE")
         )
     )
 
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
-        val deferredResults = urlsMap.map { (categoryKey, url) ->
+        val deferredResults = urlsMap.map { (category, url) ->
             async {
-                fetchAndCategorizeStreamed(categoryKey, url)
+                fetchChannelsForCategoryStreamed(category, url)
             }
         }
 
-        val rawList = deferredResults.awaitAll().flatten()
-        val groupedList = mutableListOf<Channel>()
-
-        val categoriesToInclude = listOf(
-            "Pakistan",
-            "India / Bollywood",
-            "Turkey",
-            "Cartoons",
-            "Chinese Channels",
-            "USA / International",
-            "Bollywood Movies",
-            "Hollywood Movies",
-            "Tollywood Movies",
-            "Bollywood Web Series",
-            "Hollywood Web Series"
-        )
-
-        for (cat in categoriesToInclude) {
-            val catChannels = rawList.filter { it.category == cat }
-            val fallbacks = richFallbacks[cat] ?: emptyList()
-            val combined = (catChannels + fallbacks)
-                .distinctBy { it.name.trim().lowercase() }
-                .take(40)
-            groupedList.addAll(combined)
+        val parsedLists = deferredResults.awaitAll().flatten()
+        if (parsedLists.isEmpty()) {
+            richFallbacks.values.flatten()
+        } else {
+            parsedLists
         }
-
-        groupedList
     }
 
-    private fun fetchAndCategorizeStreamed(categoryKey: String, url: String): List<Channel> {
+    private fun fetchChannelsForCategoryStreamed(category: String, url: String): List<Channel> {
         val channels = mutableListOf<Channel>()
+        val limit = if (category == "Bollywood Movies") 50 else 60
 
         try {
             val request = Request.Builder()
@@ -144,18 +108,29 @@ object ChannelRepository {
                             }
                         } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
                             if (currentName.isEmpty()) {
-                                currentName = "$categoryKey Channel ${channels.size + 1}"
+                                currentName = "$category Channel ${channels.size + 1}"
                             }
 
                             val cleanName = currentName
                                 .replace(Regex("\\[.*?\\]"), "")
                                 .replace(Regex("\\(.*?\\)"), "")
                                 .trim()
-                                .ifEmpty { "$categoryKey Channel ${channels.size + 1}" }
+                                .ifEmpty { "$category Channel ${channels.size + 1}" }
 
-                            val targetCategory = determineCategory(categoryKey, cleanName)
+                            if (category == "Bollywood Movies") {
+                                val nameLower = cleanName.lowercase()
+                                val isBollywood = nameLower.contains("hindi") ||
+                                        nameLower.contains("bollywood") ||
+                                        nameLower.contains("india") ||
+                                        nameLower.contains("cinema")
+                                if (!isBollywood) {
+                                    currentName = ""
+                                    currentLogo = ""
+                                    continue
+                                }
+                            }
 
-                            if (targetCategory == "Pakistan") {
+                            if (category == "Pakistan") {
                                 val nameLower = cleanName.lowercase()
                                 val isBlacklisted = nameLower.contains("geo") ||
                                         nameLower.contains("hum") ||
@@ -170,48 +145,30 @@ object ChannelRepository {
 
                             channels.add(
                                 Channel(
-                                    id = "${targetCategory.take(3)}_${System.currentTimeMillis()}_${channels.size}",
+                                    id = "${category.take(3)}_${System.currentTimeMillis()}_${channels.size}",
                                     name = cleanName,
                                     streamUrl = trimmed,
                                     logoUrl = currentLogo,
-                                    category = targetCategory,
-                                    country = targetCategory,
-                                    contentType = if (targetCategory.contains("Movie")) "MOVIE" else if (targetCategory.contains("Series")) "SERIES" else "LIVE"
+                                    category = category,
+                                    country = category,
+                                    contentType = if (category.contains("Movie")) "MOVIE" else "LIVE"
                                 )
                             )
                             currentName = ""
                             currentLogo = ""
 
-                            if (channels.size >= 120) break
+                            if (channels.size >= limit) break
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e("ChannelRepository", "Error fetching $categoryKey: ${e.message}")
+            Log.e("ChannelRepository", "Error streaming $category from $url: ${e.message}")
         }
 
-        return channels
-    }
-
-    private fun determineCategory(categoryKey: String, name: String): String {
-        val lower = name.lowercase()
-        return when (categoryKey) {
-            "Movies Base" -> {
-                when {
-                    lower.contains("telugu") || lower.contains("tamil") || lower.contains("south") || lower.contains("tollywood") -> "Tollywood Movies"
-                    lower.contains("hindi") || lower.contains("bollywood") || lower.contains("india") || lower.contains("cinema") -> "Bollywood Movies"
-                    else -> "Hollywood Movies"
-                }
-            }
-            "Series Base" -> {
-                when {
-                    lower.contains("hindi") || lower.contains("bollywood") || lower.contains("india") -> "Bollywood Web Series"
-                    else -> "Hollywood Web Series"
-                }
-            }
-            else -> categoryKey
-        }
+        val fallbacks = richFallbacks[category] ?: emptyList()
+        val combined = channels + fallbacks
+        return combined.distinctBy { it.name.trim().lowercase() }
     }
 
     private fun extractAttribute(line: String, attribute: String): String? {
