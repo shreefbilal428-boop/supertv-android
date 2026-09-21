@@ -41,9 +41,10 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Pakistan is the VERY FIRST tab in the UI navigation
     val categories = listOf(
-        "All",
         "Pakistan",
+        "All",
         "India",
         "Turkey",
         "Chinese Hindi Dubbed",
@@ -52,7 +53,7 @@ fun LiveTvScreen(
         "Cartoons",
         "Favorites"
     )
-    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedCategory by remember { mutableStateOf("Pakistan") }
 
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -102,7 +103,7 @@ fun LiveTvScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top Category Tabs
+        // Top Category Tabs with Pakistan first
         ScrollableTabRow(
             selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
             containerColor = DarkSurface,
@@ -214,7 +215,6 @@ fun ChannelCard(
                         .height(130.dp)
                 )
             } else {
-                // Stylized Initial Fallback Badge so cards are never pitch-black
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
