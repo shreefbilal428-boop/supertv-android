@@ -35,7 +35,7 @@ object ChannelRepository {
         "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
         "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
         "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u"
+        "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u"
     )
 
     private val richFallbacks = mapOf(
@@ -80,6 +80,7 @@ object ChannelRepository {
 
     private fun fetchChannelsForCategoryStreamed(category: String, url: String): List<Channel> {
         val channels = mutableListOf<Channel>()
+        val allIndianChannels = mutableListOf<Channel>()
         val limit = if (category == "Bollywood Movies") 50 else 60
 
         try {
@@ -117,19 +118,6 @@ object ChannelRepository {
                                 .trim()
                                 .ifEmpty { "$category Channel ${channels.size + 1}" }
 
-                            if (category == "Bollywood Movies") {
-                                val nameLower = cleanName.lowercase()
-                                val isBollywood = nameLower.contains("hindi") ||
-                                        nameLower.contains("bollywood") ||
-                                        nameLower.contains("india") ||
-                                        nameLower.contains("cinema")
-                                if (!isBollywood) {
-                                    currentName = ""
-                                    currentLogo = ""
-                                    continue
-                                }
-                            }
-
                             if (category == "Pakistan") {
                                 val nameLower = cleanName.lowercase()
                                 val isBlacklisted = nameLower.contains("geo") ||
@@ -143,21 +131,32 @@ object ChannelRepository {
                                 }
                             }
 
-                            channels.add(
-                                Channel(
-                                    id = "${category.take(3)}_${System.currentTimeMillis()}_${channels.size}",
-                                    name = cleanName,
-                                    streamUrl = trimmed,
-                                    logoUrl = currentLogo,
-                                    category = category,
-                                    country = category,
-                                    contentType = if (category.contains("Movie")) "MOVIE" else "LIVE"
-                                )
+                            val channelObj = Channel(
+                                id = "${category.take(3)}_${System.currentTimeMillis()}_${channels.size + allIndianChannels.size}",
+                                name = cleanName,
+                                streamUrl = trimmed,
+                                logoUrl = currentLogo,
+                                category = category,
+                                country = category,
+                                contentType = if (category == "Bollywood Movies") "MOVIE" else "LIVE"
                             )
+
+                            if (category == "Bollywood Movies") {
+                                allIndianChannels.add(channelObj)
+                                val nameLower = cleanName.lowercase()
+                                val keywords = listOf("cinema", "movie", "film", "bollywood", "goldmines", "action", "star", "zee", "filam", "multiplex")
+                                val matchesKeyword = keywords.any { nameLower.contains(it) }
+                                if (matchesKeyword) {
+                                    channels.add(channelObj)
+                                }
+                            } else {
+                                channels.add(channelObj)
+                            }
+
                             currentName = ""
                             currentLogo = ""
 
-                            if (channels.size >= limit) break
+                            if (category != "Bollywood Movies" && channels.size >= limit) break
                         }
                     }
                 }
@@ -166,8 +165,14 @@ object ChannelRepository {
             Log.e("ChannelRepository", "Error streaming $category from $url: ${e.message}")
         }
 
+        if (category == "Bollywood Movies" && channels.size < 20) {
+            val additionalNeeded = limit - channels.size
+            val fallbackFromIndian = allIndianChannels.filter { !channels.contains(it) }.take(additionalNeeded)
+            channels.addAll(fallbackFromIndian)
+        }
+
         val fallbacks = richFallbacks[category] ?: emptyList()
-        val combined = channels + fallbacks
+        val combined = (if (channels.isEmpty()) fallbacks else channels + fallbacks).take(limit)
         return combined.distinctBy { it.name.trim().lowercase() }
     }
 
