@@ -34,20 +34,17 @@ import com.example.ui.theme.DarkSurfaceVariant
 import com.example.ui.theme.RedAccent
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
-import kotlinx.coroutines.launch
 
 @Composable
 fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Exact requested priority tab order
+    // Pakistan is first tab, only valid populated categories included
     val categories = listOf(
         "Pakistan",
         "India / Bollywood",
         "Turkey",
-        "Chinese Hindi Dubbed",
-        "Korean Hindi Dubbed",
         "USA / International",
         "Cartoons",
         "Favorites"
@@ -57,7 +54,6 @@ fun LiveTvScreen(
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Persistent Favorites Setup
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("supertv_favorites", android.content.Context.MODE_PRIVATE) }
     var favoritedIds by remember {
@@ -86,9 +82,6 @@ fun LiveTvScreen(
             "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
             "Pakistan", "India / Bollywood", "Turkey", "USA / International", "Cartoons" -> {
                 allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) || it.category.equals(selectedCategory, ignoreCase = true) }
-            }
-            "Chinese Hindi Dubbed", "Korean Hindi Dubbed" -> {
-                allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
             }
             else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
         }
