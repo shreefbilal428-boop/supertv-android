@@ -1,0 +1,6 @@
+{
+  "name": "Super TV",
+  "description": "Live TV, Reels, and Songs streaming app with dual player engine and country filters.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
