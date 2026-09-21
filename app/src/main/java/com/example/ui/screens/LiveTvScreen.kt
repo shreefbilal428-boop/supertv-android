@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.*
@@ -20,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,47 +37,29 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Strict 7 active category tabs in exact requested order
+    val categories = listOf(
+        "Pakistan",
+        "India / Bollywood",
+        "Turkey",
+        "Chinese Hindi Dubbed",
+        "Korean Hindi Dubbed",
+        "USA / International",
+        "Cartoons"
+    )
+    var selectedCategory by remember { mutableStateOf("Pakistan") }
+
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedCategory by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val sharedPreferences = remember { context.getSharedPreferences("supertv_favorites", android.content.Context.MODE_PRIVATE) }
-    var favoritedIds by remember {
-        mutableStateOf(sharedPreferences.getStringSet("fav_ids", emptySet()) ?: emptySet())
-    }
-
-    val toggleFavorite: (Channel) -> Unit = { channel ->
-        val updated = if (favoritedIds.contains(channel.id)) {
-            favoritedIds - channel.id
-        } else {
-            favoritedIds + channel.id
-        }
-        favoritedIds = updated
-        sharedPreferences.edit().putStringSet("fav_ids", updated).apply()
-    }
 
     LaunchedEffect(Unit) {
         isLoading = true
-        val fetched = ChannelRepository.fetchAllChannels()
-        allChannels = fetched
-        if (selectedCategory.isEmpty() && fetched.isNotEmpty()) {
-            selectedCategory = fetched.first().category
-        }
+        allChannels = ChannelRepository.fetchAllChannels()
         isLoading = false
     }
 
-    // Automatically derive categories from fetched channels
-    val dynamicCategories = remember(allChannels) {
-        val cats = allChannels.map { it.category }.distinct().sorted()
-        listOf("Favorites") + cats
-    }
-
-    val displayedChannels = remember(selectedCategory, allChannels, favoritedIds) {
-        when (selectedCategory) {
-            "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
-            else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
-        }
+    val displayedChannels = remember(selectedCategory, allChannels) {
+        allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
     }
 
     Column(
@@ -88,29 +67,27 @@ fun LiveTvScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        if (dynamicCategories.size > 1) {
-            ScrollableTabRow(
-                selectedTabIndex = dynamicCategories.indexOf(selectedCategory).coerceAtLeast(0),
-                containerColor = DarkSurface,
-                contentColor = TextPrimary,
-                edgePadding = 16.dp,
-                divider = {}
-            ) {
-                dynamicCategories.forEach { cat ->
-                    Tab(
-                        selected = selectedCategory == cat,
-                        onClick = { selectedCategory = cat },
-                        text = {
-                            Text(
-                                text = cat,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = if (selectedCategory == cat) RedAccent else TextSecondary
-                            )
-                        },
-                        modifier = Modifier.testTag("tab_$cat")
-                    )
-                }
+        ScrollableTabRow(
+            selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
+            containerColor = DarkSurface,
+            contentColor = TextPrimary,
+            edgePadding = 16.dp,
+            divider = {}
+        ) {
+            categories.forEach { cat ->
+                Tab(
+                    selected = selectedCategory == cat,
+                    onClick = { selectedCategory = cat },
+                    text = {
+                        Text(
+                            text = cat,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = if (selectedCategory == cat) RedAccent else TextSecondary
+                        )
+                    },
+                    modifier = Modifier.testTag("tab_$cat")
+                )
             }
         }
 
@@ -126,7 +103,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Automatically Fetching Live Streams...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
@@ -158,8 +135,6 @@ fun LiveTvScreen(
                     items(displayedChannels, key = { it.id }) { channel ->
                         ChannelCard(
                             channel = channel,
-                            isFavorited = favoritedIds.contains(channel.id),
-                            onFavoriteClick = { toggleFavorite(channel) },
                             onClick = { onChannelSelected(channel) }
                         )
                     }
@@ -172,8 +147,6 @@ fun LiveTvScreen(
 @Composable
 fun ChannelCard(
     channel: Channel,
-    isFavorited: Boolean,
-    onFavoriteClick: () -> Unit,
     onClick: () -> Unit
 ) {
     var imageFailed by remember { mutableStateOf(false) }
@@ -236,22 +209,6 @@ fun ChannelCard(
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
-                )
-            }
-
-            IconButton(
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
-                    .size(32.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-            ) {
-                Icon(
-                    imageVector = if (isFavorited) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorite",
-                    tint = if (isFavorited) RedAccent else Color.White,
-                    modifier = Modifier.size(18.dp)
                 )
             }
 
