@@ -38,6 +38,8 @@ object ChannelRepository {
         "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u"
     )
 
+    private val secondaryCartoonUrl = "https://iptv-org.github.io/iptv/categories/animation.m3u"
+
     private val richFallbacks = mapOf(
         "Pakistan" to listOf(
             Channel("pk_fb_1", "PTV Home", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE"),
@@ -80,7 +82,16 @@ object ChannelRepository {
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
         val deferredResults = urlsMap.map { (category, url) ->
             async {
-                fetchChannelsForCategoryStreamed(category, url)
+                if (category == "Cartoons") {
+                    var primaryList = fetchChannelsForCategoryStreamed(category, url, limit = 60)
+                    if (primaryList.size < 20) {
+                        val secondaryList = fetchChannelsForCategoryStreamed(category, secondaryCartoonUrl, limit = 60)
+                        primaryList = (primaryList + secondaryList).distinctBy { it.name.trim().lowercase() }
+                    }
+                    primaryList
+                } else {
+                    fetchChannelsForCategoryStreamed(category, url, limit = 60)
+                }
             }
         }
 
@@ -92,9 +103,8 @@ object ChannelRepository {
         }
     }
 
-    private fun fetchChannelsForCategoryStreamed(category: String, url: String): List<Channel> {
+    private fun fetchChannelsForCategoryStreamed(category: String, url: String, limit: Int = 60): List<Channel> {
         val channels = mutableListOf<Channel>()
-        val limit = if (category == "Cartoons") 50 else 60
 
         try {
             val request = Request.Builder()
@@ -113,9 +123,12 @@ object ChannelRepository {
                         val trimmed = line!!.trim()
                         if (trimmed.startsWith("#EXTINF:")) {
                             currentLogo = extractAttribute(trimmed, "tvg-logo") ?: ""
+                            val tvgName = extractAttribute(trimmed, "tvg-name")
                             val commaIndex = trimmed.lastIndexOf(',')
                             if (commaIndex != -1 && commaIndex < trimmed.length - 1) {
                                 currentName = trimmed.substring(commaIndex + 1).trim()
+                            } else if (!tvgName.isNullOrEmpty()) {
+                                currentName = tvgName
                             }
                         } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
                             if (currentName.isEmpty()) {
