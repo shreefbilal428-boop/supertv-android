@@ -48,14 +48,10 @@ fun LiveTvScreen(
         "Pakistan",
         "India / Bollywood",
         "Turkey",
-        "Bollywood Movies",
-        "Hollywood Movies",
-        "Tollywood Movies",
-        "Bollywood Web Series",
-        "Hollywood Web Series",
         "Cartoons",
         "Chinese Channels",
-        "USA / International"
+        "USA / International",
+        "Bollywood Movies"
     )
     var selectedCategory by remember { mutableStateOf("Pakistan") }
     var searchQuery by remember { mutableStateOf("") }
