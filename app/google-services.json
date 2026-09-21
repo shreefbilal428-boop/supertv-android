@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "123456789012",
+    "project_id": "supertv-dummy",
+    "storage_bucket": "supertv-dummy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789012:android:1234567890123456789012",
+        "android_client_info": {
+          "package_name": "com.aistudio.supertv.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForBuildSuccessOnly123456789"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
