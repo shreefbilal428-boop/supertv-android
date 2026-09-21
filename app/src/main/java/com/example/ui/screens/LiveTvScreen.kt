@@ -41,11 +41,10 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Pakistan is the VERY FIRST tab in the UI navigation
+    // Exact requested priority tab order
     val categories = listOf(
         "Pakistan",
-        "All",
-        "India",
+        "India / Bollywood",
         "Turkey",
         "Chinese Hindi Dubbed",
         "Korean Hindi Dubbed",
@@ -75,7 +74,6 @@ fun LiveTvScreen(
         sharedPreferences.edit().putStringSet("fav_ids", updated).apply()
     }
 
-    // Fetch channels from M3U sources on launch
     LaunchedEffect(Unit) {
         isLoading = true
         val fetched = ChannelRepository.fetchAllChannels()
@@ -83,12 +81,10 @@ fun LiveTvScreen(
         isLoading = false
     }
 
-    // Filter channels based on selected category tab
     val displayedChannels = remember(selectedCategory, allChannels, favoritedIds) {
         when (selectedCategory) {
-            "All" -> allChannels
             "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
-            "Pakistan", "India", "Turkey", "USA / International", "Cartoons" -> {
+            "Pakistan", "India / Bollywood", "Turkey", "USA / International", "Cartoons" -> {
                 allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) || it.category.equals(selectedCategory, ignoreCase = true) }
             }
             "Chinese Hindi Dubbed", "Korean Hindi Dubbed" -> {
@@ -103,7 +99,6 @@ fun LiveTvScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top Category Tabs with Pakistan first
         ScrollableTabRow(
             selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
             containerColor = DarkSurface,
@@ -130,7 +125,6 @@ fun LiveTvScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Content Area / Grid
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -203,7 +197,6 @@ fun ChannelCard(
         colors = CardDefaults.cardColors(containerColor = DarkSurface)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Channel Logo or Initial Fallback Badge
             if (channel.logoUrl.isNotEmpty() && !imageFailed) {
                 AsyncImage(
                     model = channel.logoUrl,
@@ -239,7 +232,6 @@ fun ChannelCard(
                 }
             }
 
-            // Live Badge
             Box(
                 modifier = Modifier
                     .padding(8.dp)
@@ -256,7 +248,6 @@ fun ChannelCard(
                 )
             }
 
-            // Favorite Icon Button
             IconButton(
                 onClick = onFavoriteClick,
                 modifier = Modifier
@@ -273,7 +264,6 @@ fun ChannelCard(
                 )
             }
 
-            // Bottom info bar
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)

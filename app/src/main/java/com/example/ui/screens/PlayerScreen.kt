@@ -1,18 +1,13 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -107,7 +102,6 @@ fun FullscreenPlayerScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Mixed Video Player View (Dual Engine)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,7 +114,6 @@ fun FullscreenPlayerScreen(
                 )
             }
 
-            // Channel Information Bar
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = DarkSurface
@@ -158,7 +151,7 @@ fun FullscreenPlayerScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Stream Protocol: ExoPlayer HLS (.m3u8)",
+                                text = "Hybrid HLS Stream Engine",
                                 color = RedAccent,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
@@ -184,7 +177,6 @@ fun FullscreenPlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Quick Related Channels Bar
             Text(
                 text = "MORE CHANNELS",
                 color = TextSecondary,

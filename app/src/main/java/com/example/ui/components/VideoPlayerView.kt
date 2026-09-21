@@ -36,7 +36,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.datasource.DataSource
 import androidx.media3.ui.PlayerView
 import com.example.data.Channel
 import com.example.ui.theme.RedAccent
@@ -68,7 +69,6 @@ fun MixedVideoPlayerView(
             )
         }
 
-        // Toggle button between ExoPlayer HLS & WebView Embed if embedUrl is available
         if (channel.embedUrl.isNotEmpty()) {
             Row(
                 modifier = Modifier
@@ -107,7 +107,7 @@ fun HlsExoPlayerView(
     var usingBackup by remember { mutableStateOf(false) }
 
     val exoPlayer = remember {
-        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+        val httpDataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
             .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             .setDefaultRequestProperties(
                 mapOf(
@@ -120,21 +120,20 @@ fun HlsExoPlayerView(
             .setConnectTimeoutMs(15000)
             .setReadTimeoutMs(15000)
 
-        val mediaSourceFactory = DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(httpDataSourceFactory)
-
-        // Optimized Load Control for buffer smoothness
+        // Exact requested buffer settings
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                20000, // minBufferMs = 20000
-                60000, // maxBufferMs = 60000
-                3000,  // bufferForPlaybackMs = 3000
+                15000, // minBufferMs = 15000
+                50000, // maxBufferMs = 50000
+                2500,  // bufferForPlaybackMs = 2500
                 5000   // bufferForPlaybackAfterRebufferMs = 5000
             )
             .build()
 
+        val hlsMediaSourceFactory = HlsMediaSource.Factory(httpDataSourceFactory)
+
         ExoPlayer.Builder(context)
-            .setMediaSourceFactory(mediaSourceFactory)
+            .setMediaSourceFactory(hlsMediaSourceFactory)
             .setLoadControl(loadControl)
             .build()
     }
