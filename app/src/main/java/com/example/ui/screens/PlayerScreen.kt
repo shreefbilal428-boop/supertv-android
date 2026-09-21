@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.Channel
-import com.example.data.SampleData
+import com.example.data.ChannelRepository
 import com.example.ui.components.MixedVideoPlayerView
 import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.RedAccent
@@ -37,11 +37,15 @@ fun FullscreenPlayerScreen(
     modifier: Modifier = Modifier
 ) {
     var activeChannel by remember { mutableStateOf(initialChannel) }
+    var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
 
-    val relatedChannels = remember(activeChannel) {
-        val all = SampleData.channels + SampleData.musicChannels
-        all.filter { it.id != activeChannel.id && (it.country == activeChannel.country || it.category == activeChannel.category) }
-            .ifEmpty { all.filter { it.id != activeChannel.id } }
+    LaunchedEffect(Unit) {
+        allChannels = ChannelRepository.fetchAllChannels()
+    }
+
+    val relatedChannels = remember(activeChannel, allChannels) {
+        allChannels.filter { it.id != activeChannel.id && it.category == activeChannel.category }
+            .ifEmpty { allChannels.filter { it.id != activeChannel.id } }
     }
 
     Scaffold(

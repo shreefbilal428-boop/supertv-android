@@ -40,21 +40,9 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Exact requested category order with Pakistan as first priority tab
-    val categories = listOf(
-        "Pakistan",
-        "India / Bollywood",
-        "Turkey",
-        "Chinese Hindi Dubbed",
-        "Korean Hindi Dubbed",
-        "USA / International",
-        "Cartoons",
-        "Favorites"
-    )
-    var selectedCategory by remember { mutableStateOf("Pakistan") }
-
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var selectedCategory by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("supertv_favorites", android.content.Context.MODE_PRIVATE) }
@@ -76,19 +64,22 @@ fun LiveTvScreen(
         isLoading = true
         val fetched = ChannelRepository.fetchAllChannels()
         allChannels = fetched
+        if (selectedCategory.isEmpty() && fetched.isNotEmpty()) {
+            selectedCategory = fetched.first().category
+        }
         isLoading = false
+    }
+
+    // Automatically derive categories from fetched channels
+    val dynamicCategories = remember(allChannels) {
+        val cats = allChannels.map { it.category }.distinct().sorted()
+        listOf("Favorites") + cats
     }
 
     val displayedChannels = remember(selectedCategory, allChannels, favoritedIds) {
         when (selectedCategory) {
             "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
-            "Pakistan", "India / Bollywood", "Turkey", "USA / International", "Cartoons" -> {
-                allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) || it.category.equals(selectedCategory, ignoreCase = true) }
-            }
-            "Chinese Hindi Dubbed", "Korean Hindi Dubbed" -> {
-                allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
-            }
-            else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
+            else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
         }
     }
 
@@ -97,27 +88,29 @@ fun LiveTvScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        ScrollableTabRow(
-            selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
-            containerColor = DarkSurface,
-            contentColor = TextPrimary,
-            edgePadding = 16.dp,
-            divider = {}
-        ) {
-            categories.forEach { cat ->
-                Tab(
-                    selected = selectedCategory == cat,
-                    onClick = { selectedCategory = cat },
-                    text = {
-                        Text(
-                            text = cat,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (selectedCategory == cat) RedAccent else TextSecondary
-                        )
-                    },
-                    modifier = Modifier.testTag("tab_$cat")
-                )
+        if (dynamicCategories.size > 1) {
+            ScrollableTabRow(
+                selectedTabIndex = dynamicCategories.indexOf(selectedCategory).coerceAtLeast(0),
+                containerColor = DarkSurface,
+                contentColor = TextPrimary,
+                edgePadding = 16.dp,
+                divider = {}
+            ) {
+                dynamicCategories.forEach { cat ->
+                    Tab(
+                        selected = selectedCategory == cat,
+                        onClick = { selectedCategory = cat },
+                        text = {
+                            Text(
+                                text = cat,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (selectedCategory == cat) RedAccent else TextSecondary
+                            )
+                        },
+                        modifier = Modifier.testTag("tab_$cat")
+                    )
+                }
             }
         }
 
@@ -133,7 +126,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Automatically Fetching Live Streams...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
