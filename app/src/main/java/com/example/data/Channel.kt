@@ -38,6 +38,15 @@ object ChannelRepository {
         "cartoon", "kids", "disney", "nick", "pogo", "hungama", "sonic", "toon", "anime", "junior", "baby", "boing", "pop", "cbeebies"
     )
 
+    private val bollywoodSources = listOf(
+        "https://iptv-org.github.io/iptv/countries/in.m3u",
+        "https://iptv-org.github.io/iptv/languages/hin.m3u"
+    )
+
+    private val bollywoodKeywords = listOf(
+        "star", "sony", "zee", "colors", "sab", "tv", "news", "music", "mtv", "bindass", "9xm", "mastiii", "b4u", "zoom", "aaj tak", "ndtv", "india"
+    )
+
     private val richFallbacks = mapOf(
         "Pakistan" to listOf(
             Channel("pk_fb_1", "PTV Home", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE"),
@@ -65,7 +74,6 @@ object ChannelRepository {
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
         val standardMap = mapOf(
             "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
-            "Bollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
             "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
             "Chinese" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
             "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
@@ -78,14 +86,19 @@ object ChannelRepository {
             }
         }
 
+        val deferredBollywood = async {
+            fetchCombinedBollywood()
+        }
+
         val deferredCartoons = async {
             fetchCombinedCartoons()
         }
 
         val standardResults = deferredStandard.awaitAll().flatten()
+        val bollywoodResults = deferredBollywood.await()
         val cartoonsResults = deferredCartoons.await()
 
-        standardResults + cartoonsResults
+        standardResults + bollywoodResults + cartoonsResults
     }
 
     private fun fetchStandardCategory(category: String, url: String): List<Channel> {
@@ -182,6 +195,79 @@ object ChannelRepository {
         return combined.distinctBy { it.name.trim().lowercase() }
     }
 
+    private fun fetchCombinedBollywood(): List<Channel> {
+        val bollywoodChannels = mutableListOf<Channel>()
+
+        for (url in bollywoodSources) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .build()
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    response.body?.charStream()?.use { reader ->
+                        val bufferedReader = BufferedReader(reader)
+                        var line: String?
+                        var currentName = ""
+                        var currentLogo = ""
+
+                        while (bufferedReader.readLine().also { line = it } != null) {
+                            val trimmed = line!!.trim()
+                            if (trimmed.startsWith("#EXTINF:")) {
+                                currentLogo = extractAttribute(trimmed, "tvg-logo") ?: ""
+                                val tvgName = extractAttribute(trimmed, "tvg-name")
+                                val commaIndex = trimmed.lastIndexOf(',')
+                                if (commaIndex != -1 && commaIndex < trimmed.length - 1) {
+                                    currentName = trimmed.substring(commaIndex + 1).trim()
+                                } else if (!tvgName.isNullOrEmpty()) {
+                                    currentName = tvgName
+                                }
+                            } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                                if (currentName.isEmpty()) {
+                                    currentName = "Bollywood Channel ${bollywoodChannels.size + 1}"
+                                }
+
+                                val cleanName = cleanChannelName(currentName, "Bollywood")
+                                val nameLower = cleanName.lowercase()
+
+                                val matchesKeyword = bollywoodKeywords.any { nameLower.contains(it) } || url.contains("hin")
+
+                                if (matchesKeyword) {
+                                    bollywoodChannels.add(
+                                        Channel(
+                                            id = "bolly_${System.currentTimeMillis()}_${bollywoodChannels.size}",
+                                            name = cleanName,
+                                            streamUrl = trimmed,
+                                            logoUrl = currentLogo,
+                                            category = "Bollywood",
+                                            country = "India",
+                                            contentType = "LIVE"
+                                        )
+                                    )
+                                }
+
+                                currentName = ""
+                                currentLogo = ""
+
+                                if (bollywoodChannels.size >= 120) break
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ChannelRepository", "Error fetching bollywood from $url: ${e.message}")
+            }
+        }
+
+        val fallbacks = richFallbacks["Bollywood"] ?: emptyList()
+        val combined = (bollywoodChannels + fallbacks)
+            .distinctBy { it.name.trim().lowercase() }
+            .take(100)
+
+        return combined
+    }
+
     private fun fetchCombinedCartoons(): List<Channel> {
         val cartoonChannels = mutableListOf<Channel>()
 
@@ -262,6 +348,7 @@ object ChannelRepository {
             .replace(Regex("(?i)720p"), "")
             .replace(Regex("(?i)1080p"), "")
             .replace(Regex("(?i)HD"), "")
+            .replace(Regex("(?i)SD"), "")
             .trim()
             .ifEmpty { "$category Channel" }
     }
