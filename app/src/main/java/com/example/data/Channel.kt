@@ -31,10 +31,10 @@ object ChannelRepository {
         "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
         "India / Bollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
         "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
+        "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
+        "Hollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u",
         "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
-        "Chinese Hindi Dubbed" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u",
-        "Korean Hindi Dubbed" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/entertainment.m3u"
+        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u"
     )
 
     private val richFallbacks = mapOf(
@@ -42,8 +42,7 @@ object ChannelRepository {
             Channel("pk_fb_1", "PTV Home", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE"),
             Channel("pk_fb_2", "PTV News", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE"),
             Channel("pk_fb_3", "Dunya News", "https://live.dunyanews.tv/dunya/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/f/fa/Dunya_News_logo.png", "Pakistan", "Pakistan", "LIVE"),
-            Channel("pk_fb_4", "Express News", "https://live.expressnews.tv/express/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png", "Pakistan", "Pakistan", "LIVE"),
-            Channel("pk_fb_5", "PTV Sports", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE")
+            Channel("pk_fb_4", "Express News", "https://live.expressnews.tv/express/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png", "Pakistan", "Pakistan", "LIVE")
         ),
         "India / Bollywood" to listOf(
             Channel("in_fb_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "India / Bollywood", "India", "LIVE"),
@@ -52,26 +51,26 @@ object ChannelRepository {
         "Turkey" to listOf(
             Channel("tr_fb_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "Turkey", "Turkey", "LIVE")
         ),
-        "Chinese Hindi Dubbed" to listOf(
-            Channel("dub_c_1", "Chinese Action Movie", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Hindi Dubbed", "China", "MOVIE")
+        "Chinese Channels" to listOf(
+            Channel("cn_1", "CCTV 6 Movie HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Channels", "China", "MOVIE"),
+            Channel("cn_2", "Dragon TV China", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Chinese Channels", "China", "LIVE"),
+            Channel("cn_3", "Hunan TV International", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Chinese Channels", "China", "LIVE"),
+            Channel("cn_4", "CCTV 4 Chinese", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Chinese Channels", "China", "LIVE"),
+            Channel("cn_5", "Zhejiang TV", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Chinese Channels", "China", "LIVE")
         ),
-        "Korean Hindi Dubbed" to listOf(
-            Channel("dub_k_1", "Korean Romantic Drama", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Korean Hindi Dubbed", "Korea", "SERIES")
+        "Hollywood Movies" to listOf(
+            Channel("hw_1", "Hollywood Action Movies 24/7", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hw_2", "HBO Hollywood HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hw_3", "Hollywood Blockbusters", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hw_4", "Paramount Movie Channel", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hw_5", "Warner TV Cinema", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hw_6", "Hollywood Comedy & Drama", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Hollywood Movies", "USA", "MOVIE")
         ),
         "USA / International" to listOf(
             Channel("us_fb_1", "Bloomberg TV", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
         ),
         "Cartoons" to listOf(
-            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_2", "Animation World TV", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_3", "Anime Kids Network", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_4", "Classic Toons Channel", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_5", "Disney Junior Hindi", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_6", "Cartoon Network HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_7", "Pogo TV Kids", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_8", "Nickelodeon India", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_9", "Hungama TV Kids", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_10", "Sonic Nickelodeon", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE")
+            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE")
         )
     )
 
@@ -118,7 +117,6 @@ object ChannelRepository {
                                 currentName = "$category Channel ${channels.size + 1}"
                             }
 
-                            // Clean channel name: remove tags like [720p], [HLS], etc.
                             val cleanName = currentName
                                 .replace(Regex("\\[.*?\\]"), "")
                                 .replace(Regex("\\(.*?\\)"), "")
@@ -161,7 +159,6 @@ object ChannelRepository {
 
         val fallbacks = richFallbacks[category] ?: emptyList()
         val combined = channels + fallbacks
-        // STRICT DUPLICATE REMOVAL (.distinctBy)
         return combined.distinctBy { it.name.lowercase().trim() }
     }
 
