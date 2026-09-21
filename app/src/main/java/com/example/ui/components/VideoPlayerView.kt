@@ -59,7 +59,7 @@ fun MixedVideoPlayerView(
             .setConnectTimeoutMs(15000)
             .setReadTimeoutMs(15000)
 
-        // Optimized load control to eliminate stutter and buffering
+        // Optimized load control to eliminate video stutter and freezing
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
                 15000, // minBufferMs
@@ -165,7 +165,7 @@ fun MixedVideoPlayerView(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = RedAccent)
                     ) {
-                        Text(text = "Retry Stream", color = Color.White)
+                        Text(text = "Tap to Retry", color = Color.White)
                     }
                 }
             }

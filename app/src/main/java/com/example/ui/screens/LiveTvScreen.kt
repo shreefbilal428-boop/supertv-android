@@ -40,7 +40,7 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Exact requested priority category tab order
+    // Exact requested category order with Pakistan as first priority tab
     val categories = listOf(
         "Pakistan",
         "India / Bollywood",

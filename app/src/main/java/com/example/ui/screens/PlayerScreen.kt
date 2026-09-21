@@ -151,7 +151,7 @@ fun FullscreenPlayerScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Hybrid HLS Stream Engine",
+                                text = "Native ExoPlayer HLS Stream",
                                 color = RedAccent,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
