@@ -54,8 +54,7 @@ fun LiveTvScreen(
         "Turkey",
         "Chinese",
         "Cartoons",
-        "Bollywood Movies",
-        "Hollywood"
+        "Bollywood Movies"
     )
     var selectedCategory by remember { mutableStateOf("Pakistan") }
     var searchQuery by remember { mutableStateOf("") }

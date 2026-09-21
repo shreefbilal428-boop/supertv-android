@@ -76,8 +76,7 @@ object ChannelRepository {
             "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
             "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
             "Chinese" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
-            "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
-            "Hollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u"
+            "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u"
         )
 
         val deferredStandard = standardMap.map { (cat, url) ->
@@ -154,10 +153,10 @@ object ChannelRepository {
                                 id = "${category.take(3)}_${System.currentTimeMillis()}_${channels.size + allIndianChannels.size}",
                                 name = cleanName,
                                 streamUrl = trimmed,
-                                logoUrl = currentLogo,
+                                logoUrl = getFormattedLogo(currentLogo, cleanName),
                                 category = category,
                                 country = category,
-                                contentType = if (category.contains("Movie") || category == "Hollywood") "MOVIE" else "LIVE"
+                                contentType = if (category.contains("Movie")) "MOVIE" else "LIVE"
                             )
 
                             if (category == "Bollywood Movies") {
@@ -239,7 +238,7 @@ object ChannelRepository {
                                             id = "bolly_${System.currentTimeMillis()}_${bollywoodChannels.size}",
                                             name = cleanName,
                                             streamUrl = trimmed,
-                                            logoUrl = currentLogo,
+                                            logoUrl = getFormattedLogo(currentLogo, cleanName),
                                             category = "Bollywood",
                                             country = "India",
                                             contentType = "LIVE"
@@ -312,7 +311,7 @@ object ChannelRepository {
                                             id = "cart_${System.currentTimeMillis()}_${cartoonChannels.size}",
                                             name = cleanName,
                                             streamUrl = trimmed,
-                                            logoUrl = currentLogo,
+                                            logoUrl = getFormattedLogo(currentLogo, cleanName),
                                             category = "Cartoons",
                                             country = "Global",
                                             contentType = "LIVE"
@@ -358,5 +357,17 @@ object ChannelRepository {
         val regex = pattern.toRegex(RegexOption.IGNORE_CASE)
         val match = regex.find(line)
         return match?.groups?.get(1)?.value
+    }
+
+    private fun getFormattedLogo(logo: String, name: String): String {
+        if (logo.isBlank()) {
+            val cleanName = name.trim().lowercase().replace(Regex("[^a-z0-9]"), "")
+            return "https://raw.githubusercontent.com/iptv-org/logos/master/channels/$cleanName.png"
+        }
+        return if (logo.startsWith("http://")) {
+            logo.replace("http://", "https://")
+        } else {
+            logo
+        }
     }
 }
