@@ -13,6 +13,7 @@ data class Channel(
     val id: String,
     val name: String,
     val streamUrl: String,
+    val backupStreamUrl: String = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
     val logoUrl: String = "",
     val category: String,
     val country: String,
@@ -27,42 +28,207 @@ object ChannelRepository {
         .followSslRedirects(true)
         .build()
 
-    // Requested Pakistani Drama, Movie, Music, Sports & Cartoon Channels at the VERY TOP
     val priorityChannels = listOf(
-        // Pakistan Top Entertainment, Dramas & Movies
-        Channel("pak_fam_1", "Hum TV", "https://live-humtv.live-stream.com.pk/humtv/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hum_News_logo.png", "Pakistan", "Pakistan", "LIVE"),
-        Channel("pak_fam_2", "ARY Digital", "https://live-arydigital.live-stream.com.pk/arydigital/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png", "Pakistan", "Pakistan", "LIVE"),
-        Channel("pak_fam_3", "Geo Entertainment / Kahani", "https://live.geo.tv/georaw/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/e/e4/Geo_News_logo.png", "Pakistan", "Pakistan", "LIVE"),
-        Channel("pak_fam_4", "Green TV Entertainment", "https://greentv-live.ercdn.net/greentv/greentv.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Pakistan", "Pakistan", "LIVE"),
-        Channel("pak_fam_5", "ARY Music", "https://live-arymusic.live-stream.com.pk/arymusic/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png", "Music", "Pakistan", "LIVE"),
-        Channel("pak_fam_6", "PTV Sports", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Sports", "Pakistan", "LIVE"),
-        Channel("pak_fam_7", "Geo Super", "https://live.geosuper.tv/geosuper/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/4/41/Geo_Super_logo.png", "Sports", "Pakistan", "LIVE"),
-        Channel("pak_fam_8", "One Plus / 8XM", "https://live.8xm.tv/8xm/index.m3u8", "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300", "Music", "Pakistan", "LIVE"),
-        Channel("pak_fam_9", "Kids Cartoon 24/7", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-
-        // Pakistan News
-        Channel("pak_n_1", "Geo News", "https://live.geo.tv/georaw/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/e/e4/Geo_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pak_n_2", "ARY News", "https://live-arynews.live-stream.com.pk/arynews/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pak_n_3", "Hum News", "https://live-humnews.live-stream.com.pk/humnews/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hum_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pak_n_4", "Express News", "https://live.expressnews.tv/express/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pak_n_5", "Dunya News", "https://live.dunyanews.tv/dunya/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/f/fa/Dunya_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pak_n_6", "Samaa TV", "https://live.samaa.tv/samaa/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1d/Samaa_TV_logo.png", "News", "Pakistan", "LIVE"),
-
-        // India Famous Channels
-        Channel("fam_in_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "News", "India", "LIVE"),
-        Channel("fam_in_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "News", "India", "LIVE"),
-
-        // Turkey Famous Channels
-        Channel("fam_tr_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "News", "Turkey", "LIVE"),
-
-        // Chinese & Korean Hindi Dubbed
-        Channel("dub_1", "Chinese Action Movie (Hindi Dubbed)", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Hindi Dubbed", "China", "MOVIE"),
-        Channel("dub_2", "Chinese Fantasy Drama (Hindi Dubbed)", "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8", "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300", "Chinese Hindi Dubbed", "China", "SERIES"),
-        Channel("dub_3", "Korean Romantic Drama (Hindi Dubbed)", "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Korean Hindi Dubbed", "Korea", "SERIES"),
-        Channel("dub_4", "Korean Thriller Series (Hindi Dubbed)", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Korean Hindi Dubbed", "Korea", "SERIES"),
-
-        // USA / International
-        Channel("intl_1", "Bloomberg TV International", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
+        Channel(
+            id = "pak_fam_1",
+            name = "Hum TV",
+            streamUrl = "https://live-humtv.live-stream.com.pk/humtv/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hum_News_logo.png",
+            category = "Pakistan",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_2",
+            name = "ARY Digital",
+            streamUrl = "https://live-arydigital.live-stream.com.pk/arydigital/index.m3u8",
+            backupStreamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png",
+            category = "Pakistan",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_3",
+            name = "Geo Entertainment / Kahani",
+            streamUrl = "https://live.geo.tv/georaw/index.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/e/e4/Geo_News_logo.png",
+            category = "Pakistan",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_4",
+            name = "Green TV Entertainment",
+            streamUrl = "https://greentv-live.ercdn.net/greentv/greentv.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300",
+            category = "Pakistan",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_5",
+            name = "ARY Music",
+            streamUrl = "https://live-arymusic.live-stream.com.pk/arymusic/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png",
+            category = "Music",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_6",
+            name = "PTV Sports",
+            streamUrl = "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png",
+            category = "Sports",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_7",
+            name = "Geo Super",
+            streamUrl = "https://live.geosuper.tv/geosuper/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/41/Geo_Super_logo.png",
+            category = "Sports",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_8",
+            name = "One Plus / 8XM",
+            streamUrl = "https://live.8xm.tv/8xm/index.m3u8",
+            backupStreamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            logoUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300",
+            category = "Music",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_fam_9",
+            name = "Kids Cartoon 24/7",
+            streamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=300",
+            category = "Cartoons",
+            country = "Cartoons",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_1",
+            name = "Geo News",
+            streamUrl = "https://live.geo.tv/georaw/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/e/e4/Geo_News_logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_2",
+            name = "ARY News",
+            streamUrl = "https://live-arynews.live-stream.com.pk/arynews/index.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_3",
+            name = "Hum News",
+            streamUrl = "https://live-humnews.live-stream.com.pk/humnews/index.m3u8",
+            backupStreamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hum_News_logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_4",
+            name = "Express News",
+            streamUrl = "https://live.expressnews.tv/express/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_5",
+            name = "Dunya News",
+            streamUrl = "https://live.dunyanews.tv/dunya/index.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/fa/Dunya_News_logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "pak_n_6",
+            name = "Samaa TV",
+            streamUrl = "https://live.samaa.tv/samaa/index.m3u8",
+            backupStreamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1d/Samaa_TV_logo.png",
+            category = "News",
+            country = "Pakistan",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "fam_in_1",
+            name = "Aaj Tak",
+            streamUrl = "https://vidgyor.com/aajtak/index.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png",
+            category = "News",
+            country = "India",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "fam_tr_1",
+            name = "TRT World",
+            streamUrl = "https://trtworld.daioncdn.net/trtworld/index.m3u8",
+            backupStreamUrl = "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png",
+            category = "News",
+            country = "Turkey",
+            contentType = "LIVE"
+        ),
+        Channel(
+            id = "dub_1",
+            name = "Chinese Action Movie (Hindi Dubbed)",
+            streamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            backupStreamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            logoUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300",
+            category = "Chinese Hindi Dubbed",
+            country = "China",
+            contentType = "MOVIE"
+        ),
+        Channel(
+            id = "dub_3",
+            name = "Korean Romantic Drama (Hindi Dubbed)",
+            streamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300",
+            category = "Korean Hindi Dubbed",
+            country = "Korea",
+            contentType = "SERIES"
+        ),
+        Channel(
+            id = "intl_1",
+            name = "Bloomberg TV International",
+            streamUrl = "https://live.bloomberg.com/android/master.m3u8",
+            backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            logoUrl = "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg",
+            category = "USA / International",
+            country = "USA",
+            contentType = "LIVE"
+        )
     )
 
     val sourceUrls = mapOf(
@@ -76,7 +242,6 @@ object ChannelRepository {
 
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
         val parsedChannels = mutableListOf<Channel>()
-        // Add requested Pakistani drama, entertainment, music, sports, and cartoon channels FIRST
         parsedChannels.addAll(priorityChannels)
 
         try {
@@ -99,7 +264,7 @@ object ChannelRepository {
         try {
             val request = Request.Builder()
                 .url(m3uUrl)
-                .header("User-Agent", "Mozilla/5.0")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
                 .build()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
@@ -139,6 +304,7 @@ object ChannelRepository {
                                 id = channelId,
                                 name = currentName,
                                 streamUrl = trimmed,
+                                backupStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
                                 logoUrl = currentLogo,
                                 category = currentGroup,
                                 country = country,

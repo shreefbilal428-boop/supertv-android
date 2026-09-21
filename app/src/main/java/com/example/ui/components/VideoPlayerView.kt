@@ -1,11 +1,6 @@
 package com.example.ui.components
 
 import android.view.ViewGroup
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -42,9 +36,6 @@ import androidx.media3.ui.PlayerView
 import com.example.data.Channel
 import com.example.ui.theme.RedAccent
 
-/**
- * Video Player for HLS (.m3u8) streams using ExoPlayer.
- */
 @Composable
 fun MixedVideoPlayerView(
     channel: Channel,
@@ -52,30 +43,34 @@ fun MixedVideoPlayerView(
     playWhenReady: Boolean = true
 ) {
     HlsExoPlayerView(
-        streamUrl = channel.streamUrl,
+        channel = channel,
         modifier = modifier,
         playWhenReady = playWhenReady
     )
 }
 
-/**
- * ExoPlayer Engine for HLS (.m3u8) streams.
- */
 @OptIn(UnstableApi::class)
 @Composable
 fun HlsExoPlayerView(
-    streamUrl: String,
+    channel: Channel,
     modifier: Modifier = Modifier,
     playWhenReady: Boolean = true
 ) {
     val context = LocalContext.current
     var isOffline by remember { mutableStateOf(false) }
     var isBuffering by remember { mutableStateOf(true) }
+    var usingBackup by remember { mutableStateOf(false) }
 
     val exoPlayer = remember {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            .setDefaultRequestProperties(mapOf("Referer" to "https://www.google.com/", "Accept" to "*/*"))
+            .setDefaultRequestProperties(
+                mapOf(
+                    "Referer" to "https://www.google.com/",
+                    "Accept" to "*/*",
+                    "Connection" to "keep-alive"
+                )
+            )
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(15000)
             .setReadTimeoutMs(15000)
@@ -106,8 +101,24 @@ fun HlsExoPlayerView(
                 }
             }
             override fun onPlayerError(error: PlaybackException) {
-                isOffline = true
-                isBuffering = false
+                if (!usingBackup && channel.backupStreamUrl.isNotEmpty()) {
+                    // Automatically fallback to backup stream without showing offline yet
+                    usingBackup = true
+                    isBuffering = true
+                    try {
+                        exoPlayer.stop()
+                        exoPlayer.clearMediaItems()
+                        exoPlayer.setMediaItem(MediaItem.fromUri(channel.backupStreamUrl))
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    } catch (e: Exception) {
+                        isOffline = true
+                        isBuffering = false
+                    }
+                } else {
+                    isOffline = true
+                    isBuffering = false
+                }
             }
         }
         exoPlayer.addListener(listener)
@@ -117,19 +128,38 @@ fun HlsExoPlayerView(
         }
     }
 
-    LaunchedEffect(streamUrl) {
+    LaunchedEffect(channel) {
+        usingBackup = false
         isBuffering = true
         isOffline = false
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
-        val mediaItem = MediaItem.fromUri(streamUrl)
+        
+        val targetUrl = channel.streamUrl.ifEmpty { channel.backupStreamUrl }
+        val mediaItem = MediaItem.fromUri(targetUrl)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.playWhenReady = playWhenReady
         exoPlayer.prepare()
-        kotlinx.coroutines.delay(12000)
+
+        // Wait up to 10 seconds for playback ready; if it doesn't ready up and backup wasn't tried, try backup
+        kotlinx.coroutines.delay(10000)
         if (exoPlayer.playbackState != Player.STATE_READY && exoPlayer.playbackState != Player.STATE_ENDED) {
-            isOffline = true
-            isBuffering = false
+            if (!usingBackup && channel.backupStreamUrl.isNotEmpty()) {
+                usingBackup = true
+                try {
+                    exoPlayer.stop()
+                    exoPlayer.clearMediaItems()
+                    exoPlayer.setMediaItem(MediaItem.fromUri(channel.backupStreamUrl))
+                    exoPlayer.prepare()
+                    exoPlayer.play()
+                } catch (e: Exception) {
+                    isOffline = true
+                    isBuffering = false
+                }
+            } else if (exoPlayer.playbackState != Player.STATE_READY) {
+                isOffline = true
+                isBuffering = false
+            }
         }
     }
 
@@ -144,7 +174,7 @@ fun HlsExoPlayerView(
                 PlayerView(ctx).apply {
                     player = exoPlayer
                     useController = true
-                    setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER) // handled by custom compose loader
+                    setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
@@ -183,9 +213,11 @@ fun HlsExoPlayerView(
                         onClick = {
                             isOffline = false
                             isBuffering = true
+                            usingBackup = false
                             try {
-                                val fallbackUri = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-                                exoPlayer.setMediaItem(MediaItem.fromUri(fallbackUri))
+                                exoPlayer.stop()
+                                exoPlayer.clearMediaItems()
+                                exoPlayer.setMediaItem(MediaItem.fromUri(channel.streamUrl))
                                 exoPlayer.prepare()
                                 exoPlayer.play()
                             } catch (e: Exception) {
@@ -194,12 +226,10 @@ fun HlsExoPlayerView(
                         },
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = RedAccent)
                     ) {
-                        androidx.compose.material3.Text(text = "Play Next Channel / Backup Stream", color = Color.White)
+                        androidx.compose.material3.Text(text = "Retry Stream", color = Color.White)
                     }
                 }
             }
         }
     }
 }
-
-
