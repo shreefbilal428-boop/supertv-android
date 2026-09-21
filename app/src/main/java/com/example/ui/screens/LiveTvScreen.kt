@@ -40,11 +40,13 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Pakistan is first tab, only valid populated categories included
+    // Exact requested priority category tab order
     val categories = listOf(
         "Pakistan",
         "India / Bollywood",
         "Turkey",
+        "Chinese Hindi Dubbed",
+        "Korean Hindi Dubbed",
         "USA / International",
         "Cartoons",
         "Favorites"
@@ -82,6 +84,9 @@ fun LiveTvScreen(
             "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
             "Pakistan", "India / Bollywood", "Turkey", "USA / International", "Cartoons" -> {
                 allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) || it.category.equals(selectedCategory, ignoreCase = true) }
+            }
+            "Chinese Hindi Dubbed", "Korean Hindi Dubbed" -> {
+                allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
             }
             else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
         }
