@@ -37,7 +37,7 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Strict 7 active category tabs in exact requested order
+    // Strict 7 active category tabs with Pakistan as 1st tab
     val categories = listOf(
         "Pakistan",
         "India / Bollywood",
@@ -103,7 +103,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Fetching Public M3U Live Streams...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
