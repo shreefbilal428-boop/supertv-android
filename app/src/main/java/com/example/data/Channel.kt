@@ -1,6 +1,9 @@
 package com.example.data
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -13,7 +16,7 @@ data class Channel(
     val logoUrl: String = "",
     val category: String,
     val country: String,
-    val contentType: String = "LIVE" // "LIVE", "MOVIE", "SERIES"
+    val contentType: String = "LIVE"
 )
 
 object ChannelRepository {
@@ -24,69 +27,136 @@ object ChannelRepository {
         .followSslRedirects(true)
         .build()
 
-    val initialChannels = listOf(
-        // Pakistan Live TV
+    val sourceUrls = mapOf(
+        "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
+        "India" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
+        "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
+        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/animation.m3u",
+        "News" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/news.m3u",
+        "Sports" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/sports.m3u"
+    )
+
+    // Fallback static channels in case network fetching fails
+    val fallbackChannels = listOf(
         Channel("pk_1", "Geo News", "https://live.geo.tv/georaw/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/e/e4/Geo_News_logo.png", "News", "Pakistan", "LIVE"),
         Channel("pk_2", "ARY News", "https://live-arynews.live-stream.com.pk/arynews/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/3/36/ARY_News_logo.png", "News", "Pakistan", "LIVE"),
         Channel("pk_3", "Hum News", "https://live-humnews.live-stream.com.pk/humnews/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hum_News_logo.png", "News", "Pakistan", "LIVE"),
         Channel("pk_4", "PTV Sports", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Sports", "Pakistan", "LIVE"),
-        Channel("pk_5", "Express News", "https://live.expressnews.tv/express/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pk_6", "Dunya News", "https://live.dunyanews.tv/dunya/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/f/fa/Dunya_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pk_7", "Samaa TV", "https://live.samaa.tv/samaa/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1d/Samaa_TV_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pk_8", "Geo Super", "https://live.geosuper.tv/geosuper/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/4/41/Geo_Super_logo.png", "Sports", "Pakistan", "LIVE"),
-        Channel("pk_9", "Aaj News", "https://live.aaj.tv/aaj/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/e/eb/Aaj_News_logo.png", "News", "Pakistan", "LIVE"),
-        Channel("pk_10", "Dawn News", "https://live.dawnnews.tv/dawn/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/6/6b/Dawn_News_logo.png", "News", "Pakistan", "LIVE"),
-        
-        // India Live TV
         Channel("in_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "News", "India", "LIVE"),
-        Channel("in_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "News", "India", "LIVE"),
-        Channel("in_3", "Zee News", "https://zee-news.live-s.cdn.bitgravity.com/cdn/zeenews/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/6/6d/Zee_News_logo.png", "News", "India", "LIVE"),
-        Channel("in_4", "ABP News", "https://abp-news.live-s.cdn.bitgravity.com/cdn/abpnews/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/4/47/ABP_News_logo.png", "News", "India", "LIVE"),
-        Channel("in_5", "Republic TV", "https://republic-live.akamaized.net/hls/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/4/44/Republic_TV_logo.png", "News", "India", "LIVE"),
-
-        // Turkey Live TV
         Channel("tr_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "News", "Turkey", "LIVE"),
-        Channel("tr_2", "TRT Haber", "https://tv-trthaber.trt.com.tr/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/b/b3/TRT_Haber_logo.png", "News", "Turkey", "LIVE"),
-        Channel("tr_3", "TRT Spor", "https://tv-trtspor.trt.com.tr/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/22/TRT_Spor_logo.png", "Sports", "Turkey", "LIVE"),
-        Channel("tr_4", "A Haber", "https://ahaber-live.ercdn.net/ahaber/ahaber.m3u8", "https://upload.wikimedia.org/wikipedia/commons/9/9f/A_Haber_logo.png", "News", "Turkey", "LIVE"),
-
-        // Cartoons & Kids
-        Channel("cart_1", "Big Buck Bunny Animation", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Animation", "Cartoons", "LIVE"),
-        Channel("cart_2", "Sintel Kids Adventure", "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Animation", "Cartoons", "LIVE"),
-        Channel("cart_3", "Tears of Steel Sci-Fi", "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8", "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300", "Animation", "Cartoons", "LIVE"),
-
-        // Movies & VOD
-        Channel("mov_1", "Cinematic Masterpiece HLS", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood", "Movies", "MOVIE"),
-        Channel("mov_2", "Action Blockbuster Stream", "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood", "Movies", "MOVIE"),
-        Channel("mov_3", "Drama Feature HLS", "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Pakistani", "Movies", "MOVIE"),
-
-        // Series
-        Channel("ser_1", "Episodic Drama Season 1", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=300", "Turkish Dramas", "Series", "SERIES"),
-        Channel("ser_2", "Crime Thriller Series Ep 1", "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Pakistani Dramas", "Series", "SERIES")
+        Channel("cart_1", "Big Buck Bunny", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Animation", "Cartoons", "LIVE")
     )
 
-    suspend fun verifyAndGetActiveChannels(): List<Channel> = withContext(Dispatchers.IO) {
-        initialChannels.mapNotNull { channel ->
-            try {
-                val request = Request.Builder()
-                    .url(channel.streamUrl)
-                    .head()
-                    .header("User-Agent", "VLC/3.0.16 LibVLC/3.0.16")
-                    .build()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful || response.code in 200..399) {
-                    channel
-                } else {
-                    channel
+    suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
+        val parsedChannels = mutableListOf<Channel>()
+        try {
+            val deferreds = sourceUrls.map { (category, url) ->
+                async {
+                    fetchAndParseM3U(url, category)
                 }
-            } catch (e: Exception) {
-                channel
             }
+            val results = deferreds.awaitAll()
+            results.forEach { parsedChannels.addAll(it) }
+        } catch (e: Exception) {
+            Log.e("ChannelRepository", "Error fetching M3U sources: ${e.message}")
+        }
+
+        if (parsedChannels.isEmpty()) {
+            fallbackChannels
+        } else {
+            parsedChannels
+        }
+    }
+
+    private suspend fun fetchAndParseM3U(m3uUrl: String, defaultCategory: String): List<Channel> = withContext(Dispatchers.IO) {
+        val channels = mutableListOf<Channel>()
+        try {
+            val request = Request.Builder()
+                .url(m3uUrl)
+                .header("User-Agent", "Mozilla/5.0")
+                .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val body = response.body?.string() ?: return@withContext emptyList()
+                val lines = body.lines()
+                var currentName = ""
+                var currentLogo = ""
+                var currentGroup = defaultCategory
+
+                for (line in lines) {
+                    val trimmed = line.trim()
+                    if (trimmed.startsWith("#EXTINF:")) {
+                        // Extract tvg-logo
+                        currentLogo = extractAttribute(trimmed, "tvg-logo") ?: ""
+                        // Extract group-title
+                        val group = extractAttribute(trimmed, "group-title")
+                        if (!group.isNullOrEmpty()) {
+                            currentGroup = group
+                        }
+                        // Extract channel name (after last comma)
+                        val commaIndex = trimmed.lastIndexOf(',')
+                        if (commaIndex != -1 && commaIndex < trimmed.length - 1) {
+                            currentName = trimmed.substring(commaIndex + 1).trim()
+                        }
+                    } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                        // This is the stream URL
+                        if (currentName.isEmpty()) {
+                            currentName = "Channel ${channels.size + 1}"
+                        }
+                        val channelId = "ch_${System.currentTimeMillis()}_${channels.size}"
+                        val country = when {
+                            m3uUrl.contains("pk.m3u") -> "Pakistan"
+                            m3uUrl.contains("in.m3u") -> "India"
+                            m3uUrl.contains("tr.m3u") -> "Turkey"
+                            m3uUrl.contains("animation.m3u") -> "Cartoons"
+                            m3uUrl.contains("sports.m3u") -> "Sports"
+                            else -> "News"
+                        }
+                        channels.add(
+                            Channel(
+                                id = channelId,
+                                name = currentName,
+                                streamUrl = trimmed,
+                                logoUrl = currentLogo,
+                                category = currentGroup,
+                                country = country,
+                                contentType = if (m3uUrl.contains("animation")) "ANIMATION" else "LIVE"
+                            )
+                        )
+                        currentName = ""
+                        currentLogo = ""
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ChannelRepository", "Failed to parse $m3uUrl: ${e.message}")
+        }
+        channels
+    }
+
+    private fun extractAttribute(line: String, attribute: String): String? {
+        val pattern = "$attribute=\"([^\"]*)\""
+        val regex = pattern.toRegex(RegexOption.IGNORE_CASE)
+        val match = regex.find(line)
+        return match?.groups?.get(1)?.value
+    }
+
+    suspend fun verifyChannelHealth(channel: Channel): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(channel.streamUrl)
+                .head()
+                .header("User-Agent", "VLC/3.0.16 LibVLC/3.0.16")
+                .build()
+            val response = client.newCall(request).execute()
+            response.isSuccessful || response.code in 200..399
+        } catch (e: Exception) {
+            false // Dead link
         }
     }
 }
 
 object SampleData {
-    val channels = ChannelRepository.initialChannels
-    val musicChannels = ChannelRepository.initialChannels
+    val channels = ChannelRepository.fallbackChannels
+    val musicChannels = ChannelRepository.fallbackChannels
 }
