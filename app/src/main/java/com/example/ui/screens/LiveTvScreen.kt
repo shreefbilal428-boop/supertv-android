@@ -72,21 +72,21 @@ fun LiveTvScreen(
         allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
     }
 
-    // Precise Back Navigation Logic (Steps 2, 3, 4)
+    // STRICT 4-STEP BACK NAVIGATION LOGIC (Steps 2, 3, 4)
     BackHandler {
         if (gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0) {
-            // STEP 2: Scrolled down in grid -> scroll back to top
+            // STEP 2: Scrolled down in grid -> smooth scroll back to top
             coroutineScope.launch {
                 gridState.animateScrollToItem(0)
             }
         } else if (selectedCategory != "Pakistan") {
-            // STEP 3: At top of non-Pakistan tab -> switch back to "Pakistan"
+            // STEP 3: At top of non-primary tab -> switch back to primary tab "Pakistan" (Index 0)
             selectedCategory = "Pakistan"
             coroutineScope.launch {
                 gridState.scrollToItem(0)
             }
         } else {
-            // STEP 4: At top of "Pakistan" tab -> double back press to exit
+            // STEP 4: At top of "Pakistan" tab (Index 0) -> double back press within 2s to exit
             val currentTime = System.currentTimeMillis()
             if (currentTime - backPressedTime < 2000) {
                 (context as? android.app.Activity)?.finish()
@@ -143,7 +143,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading Live TV Channels...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(

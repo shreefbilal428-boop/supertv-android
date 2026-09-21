@@ -40,7 +40,7 @@ fun FullscreenPlayerScreen(
     var activeChannel by remember { mutableStateOf(initialChannel) }
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
 
-    // STEP 1: Pressing Back closes player and returns to LiveTvScreen preserving grid position
+    // STEP 1: Pressing Back closes ExoPlayer fullscreen view and returns to LiveTvScreen preserving grid scroll position
     BackHandler {
         onBackClick()
     }
