@@ -101,6 +101,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
+    implementation(libs.androidx.datastore.preferences)
     
     // Coil Image Loading Dependencies
     implementation("io.coil-kt:coil-compose:2.6.0")

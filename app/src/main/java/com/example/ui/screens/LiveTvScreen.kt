@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.Channel
 import com.example.data.ChannelRepository
+import com.example.data.FavoritesDataStore
 import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.DarkSurfaceVariant
 import com.example.ui.theme.RedAccent
@@ -45,6 +48,7 @@ fun LiveTvScreen(
     modifier: Modifier = Modifier
 ) {
     val categories = listOf(
+        "Favorites",
         "Pakistan",
         "Bollywood",
         "Turkey",
@@ -63,6 +67,8 @@ fun LiveTvScreen(
     val coroutineScope = rememberCoroutineScope()
     val gridState = rememberLazyGridState()
 
+    val favoriteIds by FavoritesDataStore.getFavoriteIds(context).collectAsState(initial = emptySet())
+
     var backPressedTime by remember { mutableStateOf(0L) }
 
     LaunchedEffect(Unit) {
@@ -71,9 +77,11 @@ fun LiveTvScreen(
         isLoading = false
     }
 
-    val displayedChannels = remember(selectedCategory, searchQuery, allChannels) {
+    val displayedChannels = remember(selectedCategory, searchQuery, allChannels, favoriteIds) {
         if (searchQuery.isNotBlank()) {
             allChannels.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        } else if (selectedCategory == "Favorites") {
+            allChannels.filter { favoriteIds.contains(it.id) || favoriteIds.contains(it.name) }
         } else {
             allChannels.filter {
                 it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true)
@@ -158,12 +166,23 @@ fun LiveTvScreen(
                             }
                         },
                         text = {
-                            Text(
-                                text = cat,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = if (selectedCategory == cat) RedAccent else TextSecondary
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (cat == "Favorites") {
+                                    Icon(
+                                        imageVector = Icons.Default.Favorite,
+                                        contentDescription = null,
+                                        tint = if (selectedCategory == cat) RedAccent else TextSecondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                }
+                                Text(
+                                    text = cat,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = if (selectedCategory == cat) RedAccent else TextSecondary
+                                )
+                            }
                         },
                         modifier = Modifier.testTag("tab_$cat")
                     )
@@ -192,14 +211,20 @@ fun LiveTvScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Tv,
+                        imageVector = if (selectedCategory == "Favorites") Icons.Default.FavoriteBorder else Icons.Default.Tv,
                         contentDescription = null,
                         tint = TextSecondary,
                         modifier = Modifier.size(64.dp)
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = if (searchQuery.isNotEmpty()) "No channels match '$searchQuery'" else "No channels found in this category.",
+                        text = if (searchQuery.isNotEmpty()) {
+                            "No channels match '$searchQuery'"
+                        } else if (selectedCategory == "Favorites") {
+                            "No favorite channels added yet.\nTap the heart icon on any channel card to add it here!"
+                        } else {
+                            "No channels found in this category."
+                        },
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
@@ -214,8 +239,15 @@ fun LiveTvScreen(
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
                     items(displayedChannels, key = { it.id }) { channel ->
+                        val isFav = favoriteIds.contains(channel.id) || favoriteIds.contains(channel.name)
                         ChannelCard(
                             channel = channel,
+                            isFavorite = isFav,
+                            onToggleFavorite = {
+                                coroutineScope.launch {
+                                    FavoritesDataStore.toggleFavorite(context, channel.id)
+                                }
+                            },
                             onClick = { onChannelSelected(channel) }
                         )
                     }
@@ -228,6 +260,8 @@ fun LiveTvScreen(
 @Composable
 fun ChannelCard(
     channel: Channel,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
     var imageFailed by remember { mutableStateOf(false) }
@@ -290,6 +324,24 @@ fun ChannelCard(
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            IconButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .testTag("fav_button_${channel.id}")
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (isFavorite) RedAccent else Color.White,
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
