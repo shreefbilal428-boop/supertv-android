@@ -34,17 +34,24 @@ import com.example.ui.theme.DarkSurfaceVariant
 import com.example.ui.theme.RedAccent
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val categories = listOf("All", "Pakistan", "India", "Turkey", "Cartoons", "News", "Sports", "Favorites")
+    val categories = listOf(
+        "All",
+        "Pakistan",
+        "India",
+        "Turkey",
+        "Chinese Hindi Dubbed",
+        "Korean Hindi Dubbed",
+        "USA / International",
+        "Cartoons",
+        "Favorites"
+    )
     var selectedCategory by remember { mutableStateOf("All") }
 
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
@@ -80,7 +87,12 @@ fun LiveTvScreen(
         when (selectedCategory) {
             "All" -> allChannels
             "Favorites" -> allChannels.filter { favoritedIds.contains(it.id) }
-            "Pakistan", "India", "Turkey" -> allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) }
+            "Pakistan", "India", "Turkey", "USA / International", "Cartoons" -> {
+                allChannels.filter { it.country.equals(selectedCategory, ignoreCase = true) || it.category.equals(selectedCategory, ignoreCase = true) }
+            }
+            "Chinese Hindi Dubbed", "Korean Hindi Dubbed" -> {
+                allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) }
+            }
             else -> allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
         }
     }
@@ -128,7 +140,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading IPTV Streams...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
