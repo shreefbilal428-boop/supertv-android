@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -52,6 +54,7 @@ fun LiveTvScreen(
         "Cartoons"
     )
     var selectedCategory by remember { mutableStateOf("Pakistan") }
+    var searchQuery by remember { mutableStateOf("") }
 
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -68,13 +71,21 @@ fun LiveTvScreen(
         isLoading = false
     }
 
-    val displayedChannels = remember(selectedCategory, allChannels) {
-        allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
+    val displayedChannels = remember(selectedCategory, searchQuery, allChannels) {
+        if (searchQuery.isNotBlank()) {
+            allChannels.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        } else {
+            allChannels.filter {
+                it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true)
+            }
+        }
     }
 
-    // STRICT 4-STEP BACK NAVIGATION LOGIC (Steps 2, 3, 4)
+    // STRICT BACK NAVIGATION LOGIC
     BackHandler {
-        if (gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0) {
+        if (searchQuery.isNotEmpty()) {
+            searchQuery = ""
+        } else if (gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0) {
             coroutineScope.launch {
                 gridState.animateScrollToItem(0)
             }
@@ -99,32 +110,64 @@ fun LiveTvScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        ScrollableTabRow(
-            selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
-            containerColor = DarkSurface,
-            contentColor = TextPrimary,
-            edgePadding = 16.dp,
-            divider = {}
-        ) {
-            categories.forEach { cat ->
-                Tab(
-                    selected = selectedCategory == cat,
-                    onClick = {
-                        selectedCategory = cat
-                        coroutineScope.launch {
-                            gridState.scrollToItem(0)
-                        }
-                    },
-                    text = {
-                        Text(
-                            text = cat,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (selectedCategory == cat) RedAccent else TextSecondary
-                        )
-                    },
-                    modifier = Modifier.testTag("tab_$cat")
-                )
+        // Real-Time Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search all channels...", color = TextSecondary, fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = RedAccent) },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = TextSecondary)
+                    }
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = RedAccent,
+                unfocusedBorderColor = DarkSurfaceVariant,
+                focusedContainerColor = DarkSurface,
+                unfocusedContainerColor = DarkSurface,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .testTag("search_input")
+        )
+
+        // Show category tabs only when not searching
+        if (searchQuery.isBlank()) {
+            ScrollableTabRow(
+                selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
+                containerColor = DarkSurface,
+                contentColor = TextPrimary,
+                edgePadding = 16.dp,
+                divider = {}
+            ) {
+                categories.forEach { cat ->
+                    Tab(
+                        selected = selectedCategory == cat,
+                        onClick = {
+                            selectedCategory = cat
+                            coroutineScope.launch {
+                                gridState.scrollToItem(0)
+                            }
+                        },
+                        text = {
+                            Text(
+                                text = cat,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (selectedCategory == cat) RedAccent else TextSecondary
+                            )
+                        },
+                        modifier = Modifier.testTag("tab_$cat")
+                    )
+                }
             }
         }
 
@@ -156,7 +199,7 @@ fun LiveTvScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "No channels found in this category.",
+                        text = if (searchQuery.isNotEmpty()) "No channels match '$searchQuery'" else "No channels found in this category.",
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
