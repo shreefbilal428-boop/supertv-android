@@ -42,16 +42,8 @@ fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categories = listOf(
-        "Pakistan",
-        "India / Bollywood",
-        "Turkey",
-        "Chinese Hindi Dubbed",
-        "Korean Hindi Dubbed",
-        "USA / International",
-        "Cartoons"
-    )
-    var selectedCategory by remember { mutableStateOf("Pakistan") }
+    val categories = listOf("India / Bollywood")
+    var selectedCategory by remember { mutableStateOf("India / Bollywood") }
 
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -68,25 +60,17 @@ fun LiveTvScreen(
         isLoading = false
     }
 
-    val displayedChannels = remember(selectedCategory, allChannels) {
-        allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
+    val displayedChannels = remember(allChannels) {
+        allChannels
     }
 
-    // STRICT 4-STEP BACK NAVIGATION LOGIC (Steps 2, 3, 4)
+    // Back Handler: scroll to top if scrolled, else double press to exit
     BackHandler {
         if (gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0) {
-            // STEP 2: Scrolled down in grid -> smooth scroll back to top
             coroutineScope.launch {
                 gridState.animateScrollToItem(0)
             }
-        } else if (selectedCategory != "Pakistan") {
-            // STEP 3: At top of non-primary tab -> switch back to primary tab "Pakistan" (Index 0)
-            selectedCategory = "Pakistan"
-            coroutineScope.launch {
-                gridState.scrollToItem(0)
-            }
         } else {
-            // STEP 4: At top of "Pakistan" tab (Index 0) -> double back press within 2s to exit
             val currentTime = System.currentTimeMillis()
             if (currentTime - backPressedTime < 2000) {
                 (context as? android.app.Activity)?.finish()
@@ -103,32 +87,25 @@ fun LiveTvScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         ScrollableTabRow(
-            selectedTabIndex = categories.indexOf(selectedCategory).coerceAtLeast(0),
+            selectedTabIndex = 0,
             containerColor = DarkSurface,
             contentColor = TextPrimary,
             edgePadding = 16.dp,
             divider = {}
         ) {
-            categories.forEach { cat ->
-                Tab(
-                    selected = selectedCategory == cat,
-                    onClick = {
-                        selectedCategory = cat
-                        coroutineScope.launch {
-                            gridState.scrollToItem(0)
-                        }
-                    },
-                    text = {
-                        Text(
-                            text = cat,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (selectedCategory == cat) RedAccent else TextSecondary
-                        )
-                    },
-                    modifier = Modifier.testTag("tab_$cat")
-                )
-            }
+            Tab(
+                selected = true,
+                onClick = {},
+                text = {
+                    Text(
+                        text = "India / Bollywood Movies & TV",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = RedAccent
+                    )
+                },
+                modifier = Modifier.testTag("tab_bollywood")
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -143,7 +120,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading Super TV Channels...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Loading Bollywood Streams...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
@@ -159,7 +136,7 @@ fun LiveTvScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "No channels found in this category.",
+                        text = "No Bollywood channels found.",
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
@@ -246,7 +223,7 @@ fun ChannelCard(
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "LIVE",
+                    text = channel.contentType,
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
