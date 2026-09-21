@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -38,6 +39,11 @@ fun FullscreenPlayerScreen(
 ) {
     var activeChannel by remember { mutableStateOf(initialChannel) }
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
+
+    // STEP 1: Pressing Back closes player and returns to LiveTvScreen preserving grid position
+    BackHandler {
+        onBackClick()
+    }
 
     LaunchedEffect(Unit) {
         allChannels = ChannelRepository.fetchAllChannels()

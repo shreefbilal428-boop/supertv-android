@@ -21,8 +21,8 @@ data class Channel(
 
 object ChannelRepository {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(12, TimeUnit.SECONDS)
-        .readTimeout(12, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
         .followRedirects(true)
         .followSslRedirects(true)
         .build()
@@ -50,10 +50,12 @@ object ChannelRepository {
             Channel("tr_fb_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "Turkey", "Turkey", "LIVE")
         ),
         "Chinese Hindi Dubbed" to listOf(
-            Channel("dub_c_1", "Chinese Action Movie (Hindi Dubbed)", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Hindi Dubbed", "China", "MOVIE")
+            Channel("dub_c_1", "Chinese Action Movie (Hindi Dubbed)", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Hindi Dubbed", "China", "MOVIE"),
+            Channel("dub_c_2", "Chinese KungFu Drama", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Chinese Hindi Dubbed", "China", "SERIES")
         ),
         "Korean Hindi Dubbed" to listOf(
-            Channel("dub_k_1", "Korean Romantic Drama (Hindi Dubbed)", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Korean Hindi Dubbed", "Korea", "SERIES")
+            Channel("dub_k_1", "Korean Romantic Drama (Hindi Dubbed)", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Korean Hindi Dubbed", "Korea", "SERIES"),
+            Channel("dub_k_2", "Korean Thriller Series", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Korean Hindi Dubbed", "Korea", "SERIES")
         ),
         "USA / International" to listOf(
             Channel("us_fb_1", "Bloomberg TV", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
@@ -135,7 +137,7 @@ object ChannelRepository {
                             )
                             currentName = ""
                             currentLogo = ""
-                            if (channels.size >= 40) break // Limit per category for performance
+                            if (channels.size >= 80) break
                         }
                     }
                 }
@@ -147,7 +149,8 @@ object ChannelRepository {
         if (channels.isEmpty()) {
             return fallbacks[category] ?: emptyList()
         }
-        return channels
+        // Ensure fallbacks are also included if parsed list is small
+        return channels + (fallbacks[category] ?: emptyList())
     }
 
     private fun extractAttribute(line: String, attribute: String): String? {

@@ -1,11 +1,14 @@
 package com.example.ui.screens
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,13 +35,13 @@ import com.example.ui.theme.DarkSurfaceVariant
 import com.example.ui.theme.RedAccent
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import kotlinx.coroutines.launch
 
 @Composable
 fun LiveTvScreen(
     onChannelSelected: (Channel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Strict 7 active category tabs with Pakistan as 1st tab
     val categories = listOf(
         "Pakistan",
         "India / Bollywood",
@@ -52,6 +56,12 @@ fun LiveTvScreen(
     var allChannels by remember { mutableStateOf<List<Channel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val gridState = rememberLazyGridState()
+
+    var backPressedTime by remember { mutableStateOf(0L) }
+
     LaunchedEffect(Unit) {
         isLoading = true
         allChannels = ChannelRepository.fetchAllChannels()
@@ -60,6 +70,31 @@ fun LiveTvScreen(
 
     val displayedChannels = remember(selectedCategory, allChannels) {
         allChannels.filter { it.category.equals(selectedCategory, ignoreCase = true) || it.country.equals(selectedCategory, ignoreCase = true) }
+    }
+
+    // Precise Back Navigation Logic (Steps 2, 3, 4)
+    BackHandler {
+        if (gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0) {
+            // STEP 2: Scrolled down in grid -> scroll back to top
+            coroutineScope.launch {
+                gridState.animateScrollToItem(0)
+            }
+        } else if (selectedCategory != "Pakistan") {
+            // STEP 3: At top of non-Pakistan tab -> switch back to "Pakistan"
+            selectedCategory = "Pakistan"
+            coroutineScope.launch {
+                gridState.scrollToItem(0)
+            }
+        } else {
+            // STEP 4: At top of "Pakistan" tab -> double back press to exit
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - backPressedTime < 2000) {
+                (context as? android.app.Activity)?.finish()
+            } else {
+                backPressedTime = currentTime
+                Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     Column(
@@ -77,7 +112,12 @@ fun LiveTvScreen(
             categories.forEach { cat ->
                 Tab(
                     selected = selectedCategory == cat,
-                    onClick = { selectedCategory = cat },
+                    onClick = {
+                        selectedCategory = cat
+                        coroutineScope.launch {
+                            gridState.scrollToItem(0)
+                        }
+                    },
                     text = {
                         Text(
                             text = cat,
@@ -103,7 +143,7 @@ fun LiveTvScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = RedAccent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Fetching Public M3U Live Streams...", color = TextSecondary, fontSize = 13.sp)
+                    Text(text = "Loading Live TV Channels...", color = TextSecondary, fontSize = 13.sp)
                 }
             } else if (displayedChannels.isEmpty()) {
                 Column(
@@ -127,6 +167,7 @@ fun LiveTvScreen(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 160.dp),
+                    state = gridState,
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
