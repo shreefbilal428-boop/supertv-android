@@ -34,11 +34,10 @@ object ChannelRepository {
         "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
         "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
         "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
-        "Hollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u"
+        "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
+        "Movies Base" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u",
+        "Series Base" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/series.m3u"
     )
-
-    private val secondaryCartoonUrl = "https://iptv-org.github.io/iptv/categories/animation.m3u"
 
     private val richFallbacks = mapOf(
         "Pakistan" to listOf(
@@ -50,60 +49,73 @@ object ChannelRepository {
         ),
         "India / Bollywood" to listOf(
             Channel("in_fb_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "India / Bollywood", "India", "LIVE"),
-            Channel("in_fb_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "India / Bollywood", "India", "LIVE"),
-            Channel("in_fb_3", "Bollywood Hits 24/7", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "India / Bollywood", "India", "MOVIE")
+            Channel("in_fb_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "India / Bollywood", "India", "LIVE")
         ),
         "Turkey" to listOf(
-            Channel("tr_fb_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "Turkey", "Turkey", "LIVE"),
-            Channel("tr_fb_2", "TRT Haber", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=300", "Turkey", "Turkey", "LIVE"),
-            Channel("tr_fb_3", "ATV Turkey", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=300", "Turkey", "Turkey", "LIVE"),
-            Channel("tr_fb_4", "Show TV Turkey", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Turkey", "Turkey", "LIVE")
+            Channel("tr_fb_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "Turkey", "Turkey", "LIVE")
         ),
         "Cartoons" to listOf(
-            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_2", "Animation World TV", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_3", "Anime Kids Network", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_4", "Cartoon Network HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
-            Channel("cart_5", "Disney Junior", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE")
+            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE")
         ),
-        "Chinese Channels" to listOf(
-            Channel("cn_1", "CCTV 6 Movie HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Channels", "China", "MOVIE"),
-            Channel("cn_2", "Dragon TV China", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Chinese Channels", "China", "LIVE")
+        "Bollywood Movies" to listOf(
+            Channel("bm_fb_1", "Bollywood Action Cinema", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Bollywood Movies", "India", "MOVIE"),
+            Channel("bm_fb_2", "Goldmines Movies HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood Movies", "India", "MOVIE")
         ),
         "Hollywood Movies" to listOf(
-            Channel("hw_1", "Hollywood Action Movies 24/7", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Hollywood Movies", "USA", "MOVIE"),
-            Channel("hw_2", "HBO Hollywood HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Movies", "USA", "MOVIE")
+            Channel("hm_fb_1", "Hollywood Blockbusters 24/7", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Movies", "USA", "MOVIE"),
+            Channel("hm_fb_2", "HBO Hollywood HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Hollywood Movies", "USA", "MOVIE")
         ),
-        "USA / International" to listOf(
-            Channel("us_fb_1", "Bloomberg TV", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
+        "Tollywood Movies" to listOf(
+            Channel("tm_fb_1", "Tollywood South Action Gold", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Tollywood Movies", "India", "MOVIE"),
+            Channel("tm_fb_2", "South Indian Cinema HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Tollywood Movies", "India", "MOVIE")
+        ),
+        "Bollywood Web Series" to listOf(
+            Channel("bws_fb_1", "Hindi Web Series 24/7", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Bollywood Web Series", "India", "SERIES"),
+            Channel("bws_fb_2", "Indian Crime Thrillers Series", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Bollywood Web Series", "India", "SERIES")
+        ),
+        "Hollywood Web Series" to listOf(
+            Channel("hws_fb_1", "Hollywood Sci-Fi Series", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", "Hollywood Web Series", "USA", "SERIES"),
+            Channel("hws_fb_2", "US Drama Series HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Hollywood Web Series", "USA", "SERIES")
         )
     )
 
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
-        val deferredResults = urlsMap.map { (category, url) ->
+        val deferredResults = urlsMap.map { (categoryKey, url) ->
             async {
-                if (category == "Cartoons") {
-                    var primaryList = fetchChannelsForCategoryStreamed(category, url, limit = 60)
-                    if (primaryList.size < 20) {
-                        val secondaryList = fetchChannelsForCategoryStreamed(category, secondaryCartoonUrl, limit = 60)
-                        primaryList = (primaryList + secondaryList).distinctBy { it.name.trim().lowercase() }
-                    }
-                    primaryList
-                } else {
-                    fetchChannelsForCategoryStreamed(category, url, limit = 60)
-                }
+                fetchAndCategorizeStreamed(categoryKey, url)
             }
         }
 
-        val parsedLists = deferredResults.awaitAll().flatten()
-        if (parsedLists.isEmpty()) {
-            richFallbacks.values.flatten()
-        } else {
-            parsedLists
+        val rawList = deferredResults.awaitAll().flatten()
+        val groupedList = mutableListOf<Channel>()
+
+        val categoriesToInclude = listOf(
+            "Pakistan",
+            "India / Bollywood",
+            "Turkey",
+            "Cartoons",
+            "Chinese Channels",
+            "USA / International",
+            "Bollywood Movies",
+            "Hollywood Movies",
+            "Tollywood Movies",
+            "Bollywood Web Series",
+            "Hollywood Web Series"
+        )
+
+        for (cat in categoriesToInclude) {
+            val catChannels = rawList.filter { it.category == cat }
+            val fallbacks = richFallbacks[cat] ?: emptyList()
+            val combined = (catChannels + fallbacks)
+                .distinctBy { it.name.trim().lowercase() }
+                .take(40)
+            groupedList.addAll(combined)
         }
+
+        groupedList
     }
 
-    private fun fetchChannelsForCategoryStreamed(category: String, url: String, limit: Int = 60): List<Channel> {
+    private fun fetchAndCategorizeStreamed(categoryKey: String, url: String): List<Channel> {
         val channels = mutableListOf<Channel>()
 
         try {
@@ -132,16 +144,18 @@ object ChannelRepository {
                             }
                         } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
                             if (currentName.isEmpty()) {
-                                currentName = "$category Channel ${channels.size + 1}"
+                                currentName = "$categoryKey Channel ${channels.size + 1}"
                             }
 
                             val cleanName = currentName
                                 .replace(Regex("\\[.*?\\]"), "")
                                 .replace(Regex("\\(.*?\\)"), "")
                                 .trim()
-                                .ifEmpty { "$category Channel ${channels.size + 1}" }
+                                .ifEmpty { "$categoryKey Channel ${channels.size + 1}" }
 
-                            if (category == "Pakistan") {
+                            val targetCategory = determineCategory(categoryKey, cleanName)
+
+                            if (targetCategory == "Pakistan") {
                                 val nameLower = cleanName.lowercase()
                                 val isBlacklisted = nameLower.contains("geo") ||
                                         nameLower.contains("hum") ||
@@ -156,30 +170,48 @@ object ChannelRepository {
 
                             channels.add(
                                 Channel(
-                                    id = "${category.take(3)}_${System.currentTimeMillis()}_${channels.size}",
+                                    id = "${targetCategory.take(3)}_${System.currentTimeMillis()}_${channels.size}",
                                     name = cleanName,
                                     streamUrl = trimmed,
                                     logoUrl = currentLogo,
-                                    category = category,
-                                    country = category,
-                                    contentType = if (cleanName.lowercase().contains("movie")) "MOVIE" else "LIVE"
+                                    category = targetCategory,
+                                    country = targetCategory,
+                                    contentType = if (targetCategory.contains("Movie")) "MOVIE" else if (targetCategory.contains("Series")) "SERIES" else "LIVE"
                                 )
                             )
                             currentName = ""
                             currentLogo = ""
 
-                            if (channels.size >= limit) break
+                            if (channels.size >= 120) break
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e("ChannelRepository", "Error streaming $category from $url: ${e.message}")
+            Log.e("ChannelRepository", "Error fetching $categoryKey: ${e.message}")
         }
 
-        val fallbacks = richFallbacks[category] ?: emptyList()
-        val combined = channels + fallbacks
-        return combined.distinctBy { it.name.trim().lowercase() }
+        return channels
+    }
+
+    private fun determineCategory(categoryKey: String, name: String): String {
+        val lower = name.lowercase()
+        return when (categoryKey) {
+            "Movies Base" -> {
+                when {
+                    lower.contains("telugu") || lower.contains("tamil") || lower.contains("south") || lower.contains("tollywood") -> "Tollywood Movies"
+                    lower.contains("hindi") || lower.contains("bollywood") || lower.contains("india") || lower.contains("cinema") -> "Bollywood Movies"
+                    else -> "Hollywood Movies"
+                }
+            }
+            "Series Base" -> {
+                when {
+                    lower.contains("hindi") || lower.contains("bollywood") || lower.contains("india") -> "Bollywood Web Series"
+                    else -> "Hollywood Web Series"
+                }
+            }
+            else -> categoryKey
+        }
     }
 
     private fun extractAttribute(line: String, attribute: String): String? {
