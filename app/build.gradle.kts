@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.example"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.aistudio.supertv.app"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -73,6 +73,14 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
+    }
+}
+
 secrets {
     propertiesFileName = ".env"
     defaultPropertiesFileName = ".env.example"
@@ -105,6 +113,9 @@ dependencies {
     
     // Coil Image Loading Dependencies
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Start.io Ads SDK
+    implementation("com.startapp:inapp-sdk:5.3.2")
 
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.junit)

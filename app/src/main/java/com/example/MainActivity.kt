@@ -25,6 +25,11 @@ import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.RedAccent
 import com.example.ui.theme.SuperTvTheme
 import com.example.ui.theme.TextPrimary
+import com.example.ui.components.StartIoBanner
+import com.example.ui.components.showInterstitialAd
+import androidx.compose.ui.platform.LocalContext
+import com.startapp.sdk.adsbase.StartAppAd
+import com.startapp.sdk.adsbase.StartAppSDK
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -33,6 +38,8 @@ import javax.net.ssl.X509TrustManager
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        StartAppSDK.init(this, "YOUR_START_IO_APP_ID", false)
+        StartAppAd.disableSplash()
         trustAllSslCertificates()
         enableEdgeToEdge()
         setContent {
@@ -119,6 +126,9 @@ fun SuperTvApp() {
                         containerColor = DarkSurface
                     )
                 )
+            },
+            bottomBar = {
+                StartIoBanner()
             }
         ) { innerPadding ->
             Box(
@@ -126,9 +136,12 @@ fun SuperTvApp() {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                val context = LocalContext.current
                 LiveTvScreen(
                     onChannelSelected = { channel ->
-                        selectedChannel = channel
+                        showInterstitialAd(context) {
+                            selectedChannel = channel
+                        }
                     }
                 )
             }
