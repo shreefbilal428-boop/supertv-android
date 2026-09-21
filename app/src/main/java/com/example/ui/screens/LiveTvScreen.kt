@@ -46,12 +46,12 @@ fun LiveTvScreen(
 ) {
     val categories = listOf(
         "Pakistan",
-        "India / Bollywood",
+        "Bollywood",
         "Turkey",
+        "Chinese",
         "Cartoons",
-        "Chinese Channels",
-        "USA / International",
-        "Bollywood Movies"
+        "Bollywood Movies",
+        "Hollywood"
     )
     var selectedCategory by remember { mutableStateOf("Pakistan") }
     var searchQuery by remember { mutableStateOf("") }

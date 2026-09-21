@@ -28,14 +28,14 @@ object ChannelRepository {
         .followSslRedirects(true)
         .build()
 
-    private val urlsMap = mapOf(
-        "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
-        "India / Bollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
-        "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
-        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
-        "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
-        "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u"
+    private val cartoonSources = listOf(
+        "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/kids.m3u",
+        "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
+        "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u"
+    )
+
+    private val cartoonKeywords = listOf(
+        "cartoon", "kids", "disney", "nick", "pogo", "hungama", "sonic", "toon", "anime", "junior", "baby", "boing", "pop", "cbeebies"
     )
 
     private val richFallbacks = mapOf(
@@ -46,9 +46,9 @@ object ChannelRepository {
             Channel("pk_fb_4", "Express News", "https://live.expressnews.tv/express/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/8/8e/Express_News_Logo.png", "Pakistan", "Pakistan", "LIVE"),
             Channel("pk_fb_5", "PTV Sports", "https://ptv-sports-live.ptv.com.pk/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/2/23/PTV_Sports_logo.png", "Pakistan", "Pakistan", "LIVE")
         ),
-        "India / Bollywood" to listOf(
-            Channel("in_fb_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "India / Bollywood", "India", "LIVE"),
-            Channel("in_fb_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "India / Bollywood", "India", "LIVE")
+        "Bollywood" to listOf(
+            Channel("in_fb_1", "Aaj Tak", "https://vidgyor.com/aajtak/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/1/1a/Aaj_Tak_logo.png", "Bollywood", "India", "LIVE"),
+            Channel("in_fb_2", "NDTV 24x7", "https://ndtv24x7.live-s.cdn.bitgravity.com/cdn/ndtv24x7/live/playlist.m3u8", "https://upload.wikimedia.org/wikipedia/commons/a/ac/NDTV_24x7_logo.png", "Bollywood", "India", "LIVE")
         ),
         "Turkey" to listOf(
             Channel("tr_fb_1", "TRT World", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://upload.wikimedia.org/wikipedia/commons/7/7b/TRT_World_logo.png", "Turkey", "Turkey", "LIVE")
@@ -58,30 +58,40 @@ object ChannelRepository {
         ),
         "Bollywood Movies" to listOf(
             Channel("bm_fb_1", "Bollywood Action Cinema", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300", "Bollywood Movies", "India", "MOVIE"),
-            Channel("bm_fb_2", "Goldmines Movies HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood Movies", "India", "MOVIE"),
-            Channel("bm_fb_3", "Hindi Cinema Hits 24/7", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300", "Bollywood Movies", "India", "MOVIE")
+            Channel("bm_fb_2", "Goldmines Movies HD", "https://vidgyor.com/aajtak/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Bollywood Movies", "India", "MOVIE")
         )
     )
 
     suspend fun fetchAllChannels(): List<Channel> = withContext(Dispatchers.IO) {
-        val deferredResults = urlsMap.map { (category, url) ->
+        val standardMap = mapOf(
+            "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
+            "Bollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
+            "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
+            "Chinese" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
+            "Bollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
+            "Hollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/movies.m3u"
+        )
+
+        val deferredStandard = standardMap.map { (cat, url) ->
             async {
-                fetchChannelsForCategoryStreamed(category, url)
+                fetchStandardCategory(cat, url)
             }
         }
 
-        val parsedLists = deferredResults.awaitAll().flatten()
-        if (parsedLists.isEmpty()) {
-            richFallbacks.values.flatten()
-        } else {
-            parsedLists
+        val deferredCartoons = async {
+            fetchCombinedCartoons()
         }
+
+        val standardResults = deferredStandard.awaitAll().flatten()
+        val cartoonsResults = deferredCartoons.await()
+
+        standardResults + cartoonsResults
     }
 
-    private fun fetchChannelsForCategoryStreamed(category: String, url: String): List<Channel> {
+    private fun fetchStandardCategory(category: String, url: String): List<Channel> {
         val channels = mutableListOf<Channel>()
         val allIndianChannels = mutableListOf<Channel>()
-        val limit = if (category == "Bollywood Movies") 50 else 60
+        val limit = 50
 
         try {
             val request = Request.Builder()
@@ -112,11 +122,7 @@ object ChannelRepository {
                                 currentName = "$category Channel ${channels.size + 1}"
                             }
 
-                            val cleanName = currentName
-                                .replace(Regex("\\[.*?\\]"), "")
-                                .replace(Regex("\\(.*?\\)"), "")
-                                .trim()
-                                .ifEmpty { "$category Channel ${channels.size + 1}" }
+                            val cleanName = cleanChannelName(currentName, category)
 
                             if (category == "Pakistan") {
                                 val nameLower = cleanName.lowercase()
@@ -138,13 +144,13 @@ object ChannelRepository {
                                 logoUrl = currentLogo,
                                 category = category,
                                 country = category,
-                                contentType = if (category == "Bollywood Movies") "MOVIE" else "LIVE"
+                                contentType = if (category.contains("Movie") || category == "Hollywood") "MOVIE" else "LIVE"
                             )
 
                             if (category == "Bollywood Movies") {
                                 allIndianChannels.add(channelObj)
                                 val nameLower = cleanName.lowercase()
-                                val keywords = listOf("cinema", "movie", "film", "bollywood", "goldmines", "action", "star", "zee", "filam", "multiplex")
+                                val keywords = listOf("cinema", "movie", "filam", "goldmines", "multiplex", "filmy", "action", "hitz", "star", "zee")
                                 val matchesKeyword = keywords.any { nameLower.contains(it) }
                                 if (matchesKeyword) {
                                     channels.add(channelObj)
@@ -162,7 +168,7 @@ object ChannelRepository {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ChannelRepository", "Error streaming $category from $url: ${e.message}")
+            Log.e("ChannelRepository", "Error fetching $category: ${e.message}")
         }
 
         if (category == "Bollywood Movies" && channels.size < 20) {
@@ -174,6 +180,90 @@ object ChannelRepository {
         val fallbacks = richFallbacks[category] ?: emptyList()
         val combined = (if (channels.isEmpty()) fallbacks else channels + fallbacks).take(limit)
         return combined.distinctBy { it.name.trim().lowercase() }
+    }
+
+    private fun fetchCombinedCartoons(): List<Channel> {
+        val cartoonChannels = mutableListOf<Channel>()
+
+        for (url in cartoonSources) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .build()
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    response.body?.charStream()?.use { reader ->
+                        val bufferedReader = BufferedReader(reader)
+                        var line: String?
+                        var currentName = ""
+                        var currentLogo = ""
+
+                        while (bufferedReader.readLine().also { line = it } != null) {
+                            val trimmed = line!!.trim()
+                            if (trimmed.startsWith("#EXTINF:")) {
+                                currentLogo = extractAttribute(trimmed, "tvg-logo") ?: ""
+                                val tvgName = extractAttribute(trimmed, "tvg-name")
+                                val commaIndex = trimmed.lastIndexOf(',')
+                                if (commaIndex != -1 && commaIndex < trimmed.length - 1) {
+                                    currentName = trimmed.substring(commaIndex + 1).trim()
+                                } else if (!tvgName.isNullOrEmpty()) {
+                                    currentName = tvgName
+                                }
+                            } else if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                                if (currentName.isEmpty()) {
+                                    currentName = "Cartoon Channel ${cartoonChannels.size + 1}"
+                                }
+
+                                val cleanName = cleanChannelName(currentName, "Cartoons")
+                                val nameLower = cleanName.lowercase()
+
+                                val matchesKeyword = cartoonKeywords.any { nameLower.contains(it) } || url.contains("kids") || url.contains("animation")
+
+                                if (matchesKeyword) {
+                                    cartoonChannels.add(
+                                        Channel(
+                                            id = "cart_${System.currentTimeMillis()}_${cartoonChannels.size}",
+                                            name = cleanName,
+                                            streamUrl = trimmed,
+                                            logoUrl = currentLogo,
+                                            category = "Cartoons",
+                                            country = "Global",
+                                            contentType = "LIVE"
+                                        )
+                                    )
+                                }
+
+                                currentName = ""
+                                currentLogo = ""
+
+                                if (cartoonChannels.size >= 80) break
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ChannelRepository", "Error fetching cartoons from $url: ${e.message}")
+            }
+        }
+
+        val fallbacks = richFallbacks["Cartoons"] ?: emptyList()
+        val combined = (cartoonChannels + fallbacks)
+            .distinctBy { it.name.trim().lowercase() }
+            .take(60)
+
+        return combined
+    }
+
+    private fun cleanChannelName(name: String, category: String): String {
+        return name
+            .replace(Regex("\\[.*?\\]"), "")
+            .replace(Regex("\\(.*?\\)"), "")
+            .replace(Regex("(?i)720p"), "")
+            .replace(Regex("(?i)1080p"), "")
+            .replace(Regex("(?i)HD"), "")
+            .trim()
+            .ifEmpty { "$category Channel" }
     }
 
     private fun extractAttribute(line: String, attribute: String): String? {
