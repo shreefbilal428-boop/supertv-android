@@ -32,10 +32,10 @@ object ChannelRepository {
         "Pakistan" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/pk.m3u",
         "India / Bollywood" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/in.m3u",
         "Turkey" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/tr.m3u",
+        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u",
         "Chinese Channels" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u",
         "Hollywood Movies" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
-        "Cartoons" to "https://raw.githubusercontent.com/iptv-org/iptv/master/categories/animation.m3u"
+        "USA / International" to "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u"
     )
 
     private val richFallbacks = mapOf(
@@ -57,6 +57,13 @@ object ChannelRepository {
             Channel("tr_fb_3", "ATV Turkey", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=300", "Turkey", "Turkey", "LIVE"),
             Channel("tr_fb_4", "Show TV Turkey", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Turkey", "Turkey", "LIVE")
         ),
+        "Cartoons" to listOf(
+            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_2", "Animation World TV", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_3", "Anime Kids Network", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_4", "Cartoon Network HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE"),
+            Channel("cart_5", "Disney Junior", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300", "Cartoons", "Cartoons", "LIVE")
+        ),
         "Chinese Channels" to listOf(
             Channel("cn_1", "CCTV 6 Movie HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300", "Chinese Channels", "China", "MOVIE"),
             Channel("cn_2", "Dragon TV China", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", "Chinese Channels", "China", "LIVE")
@@ -67,9 +74,6 @@ object ChannelRepository {
         ),
         "USA / International" to listOf(
             Channel("us_fb_1", "Bloomberg TV", "https://live.bloomberg.com/android/master.m3u8", "https://upload.wikimedia.org/wikipedia/commons/d/ed/Bloomberg_Television_logo.svg", "USA / International", "USA", "LIVE")
-        ),
-        "Cartoons" to listOf(
-            Channel("cart_1", "Kids Cartoon 24/7 HD", "https://trtworld.daioncdn.net/trtworld/index.m3u8", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", "Cartoons", "Cartoons", "LIVE")
         )
     )
 
@@ -90,6 +94,8 @@ object ChannelRepository {
 
     private fun fetchChannelsForCategoryStreamed(category: String, url: String): List<Channel> {
         val channels = mutableListOf<Channel>()
+        val limit = if (category == "Cartoons") 50 else 60
+
         try {
             val request = Request.Builder()
                 .url(url)
@@ -149,7 +155,7 @@ object ChannelRepository {
                             currentName = ""
                             currentLogo = ""
 
-                            if (channels.size >= 60) break
+                            if (channels.size >= limit) break
                         }
                     }
                 }
